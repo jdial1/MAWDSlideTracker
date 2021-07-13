@@ -123,17 +123,14 @@
               <p>
             {{ result.SlideDistributionKeyword}}
               <br>
-
-
                 <br><br>
-                Print Slide <input type="checkbox"
-                              v-model=result.ToBePrinted
-                              @change="updateSlideToPrintValue(result.SlideID, result.ToBePrinted)"
-                              >
+                Print Slide <input type="checkbox" v-model=result.ToBePrinted @change="updateSlideToPrintValue(result.SlideID, result.ToBePrinted)" >
                   <br><br>
                   Status:
                   <br>
-                  {{ result.Status}}
+                {{ result.Status}}
+                <br>
+                <b-button :value="result.SlideID" variant="warning" @click="addSlide($event,result.SlideID)" v-if="result.SlideInst===result.slidecount">Add Slide</b-button>
               </p>
             </label>
 
@@ -205,6 +202,27 @@ export default {
       }
   },
   methods: {
+    addSlide(e,slideID){
+      console.log("TESTING: "+slideID)
+      console.log(e.target.value)
+      let obj = this.slides.find(o => o.SlideID === e.target.value)
+      console.log(obj)
+      console.log(JSON.stringify(obj))
+      console.log(this.slides)
+      
+      axios.post(store.getters.getApiUrl + '/addSlide', {
+        action: 'AddSlide'
+      })
+          .then(function (response) {
+            console.log('addSlide')
+            console.log(response)
+          })
+          .catch(function (error) {
+            console.log(error)
+          });
+
+    },
+
     validateScanData(data){
       if (store.state.validuser) {
         console.log('Slide Queue Path: ', data.slideQueuePath)

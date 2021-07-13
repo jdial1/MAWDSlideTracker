@@ -10,7 +10,14 @@ export default new Vuex.Store({
     username: '',
     validuser: false,
     stationName: '',
+<<<<<<< Updated upstream
     testmode: false,
+=======
+    version:'3.10',
+    nodeBackendTestMode: true,
+    vueFrontendTestMode:true,
+    production:false,
+>>>>>>> Stashed changes
     slideQueuePath: '',
     testapiURL: 'http://10.24.4.9:2082',
     prodapiURL: 'http://10.24.4.9:2081',
