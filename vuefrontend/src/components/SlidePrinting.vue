@@ -1,6 +1,6 @@
 <!-- ===========================================================================================
 
-    File: SlidesV3.vue
+
 
     Authors: Drew Spencer
 
@@ -9,9 +9,7 @@
     Notes: Working towards StandardJS.
 ============================================================================================ -->
 <template>
-
-
-<div class="container">
+<div class="container"  v-if="this.$store.getters.GetValidUser">
   <div class="mx-auto">
 
 <!--Scan Block......................-->
@@ -23,8 +21,6 @@
       <b-button type="submit" variant="primary lg" :disabled=inputButtonDisabled>{{formstatuslabel}}</b-button>
       <b-button id="btnManualBlockIDToggle" :disabled=inputNoBarcodeButtonDisabled v-b-toggle.collapse-manualbockid variant="outline-secondary"> No Barcode </b-button>
        <b-button variant="secondary sm" @click="clearCurrentSlide()">Cancel</b-button>
-
-
     </b-form>
   </div>
   <div v-if="loading" class="loader">
@@ -34,54 +30,54 @@
   <div v-else-if="error_message">
     <h3>{{ error_message }}</h3>
   </div>
-  <b-collapse id="collapse-manualbockid" class="mt-2">        
+  <b-collapse id="collapse-manualbockid" class="mt-2">
     <b-card>
       <p class="card-text">If you cannot scan the barcode, you can manually input the full block ID in the fields below:<br>**Double check the slides that pull up correspond to the block**</p>
       <b-row>
-          <b-col> 
+          <b-col>
             <label>Case Prefix:</label>
           </b-col>
-          <b-col> 
+          <b-col>
            <b-input id="InputCasePrefix" v-model="manualcaseprefix" />
           </b-col>
       </b-row>
             <b-row>
-          <b-col> 
+          <b-col>
             <label>Year:</label>
           </b-col>
-          <b-col> 
+          <b-col>
            <b-input id="InputCaseTwoDigitYear" v-model="manualcasetwodigityear" />
           </b-col>
       </b-row>
       <b-row>
-          <b-col> 
+          <b-col>
             <label>Case Number:</label>
           </b-col>
-          <b-col> 
+          <b-col>
            <b-input id="InputCaseNo" v-model="manualcasenumber" />
           </b-col>
       </b-row>
             <b-row>
-          <b-col> 
+          <b-col>
             <label> Part:</label>
           </b-col>
-          <b-col> 
+          <b-col>
            <b-input id="InputPart" v-model="manualpart" />
           </b-col>
       </b-row>
       <b-row>
-          <b-col> 
+          <b-col>
             <label> Block: </label>
           </b-col>
-          <b-col> 
+          <b-col>
            <b-input id="InputBlock" v-model="manualblock" />
           </b-col>
       </b-row>
       <b-row>
-          <b-col> 
+          <b-col>
             <label> Full Block ID:</label>
           </b-col>
-          <b-col> 
+          <b-col>
               <label> HBLK{{manualcaseprefix}}{{manualcasetwodigityear}}-{{manualcasenumber}}_{{manualpart}}_{{manualblock}} </label>
           </b-col>
       </b-row>
@@ -155,18 +151,9 @@
 import axios from 'axios'
 import store from '../store.js'
 
-//const strApiUrl = process.env.VUE_APP_API_URL
-//Prod
-// const strApiUrl = 'http://10.24.4.9:2081'
-//Test
-//const strApiUrl = 'http://10.24.4.9:2082'
-//Local Test
-//const strApiUrl = 'http://localhost:2081'
-
 
 // define the external API URL
-//const API_URL = 'http://localhost:3000/slidetracker/slideparameters?blockid='
-const API_URLWithSlideParameters = store.state.apiURL + '/slidetracker/slideparameters?blockid='  //For Get Call
+const API_URLWithSlideParameters = store.getters.getApiUrl + '/slidetracker/slideparameters?blockid='  //For Get Call
 // Helper function to help build urls to fetch slide details from blockid
 function buildUrl(blockID) {
   return `${API_URLWithSlideParameters}${blockID}`
@@ -174,13 +161,10 @@ function buildUrl(blockID) {
 export default {
   name: 'slides', // component name
   props: {
-    // username: String,  access through store
-    // firstname: String,
+
     lastname: String,
     userid: String,
-    // background: String,
-    // validuser: Boolean access through store
-    //blockID: String
+
     },
     data() {
     return {
@@ -191,8 +175,6 @@ export default {
       formstatus: 'loadslides',
       formstatuslabel: 'Load Slides',
       info: null,
-      // slideQueuePath: '', moved to store
-      // stationName: '', moved to store
       totalBlocks: null,
       currentBlock: null,
       totalParts: null,
@@ -241,9 +223,6 @@ export default {
             this.pullSlides();
             break
           case 'SBDG':
-          //Handled within App.vue
-          //this.scannedbadgeinput = data.barcodeScanData
-          //this.scanbadge()
             break
           case 'HSLD':
           this.blockID = 'Scan block not slide'
@@ -274,12 +253,9 @@ export default {
   printSlides()
   {
     console.log('start print slides')
-
-    //Send api the following:  action: UpdateSlideToPrint slideid=? value=?
-    //Add printRequestedBy
     console.log(store.state.slideQueuePath)
 
-      axios.post(store.state.apiURL + '/printslides', {
+      axios.post(store.getters.getApiUrl + '/printslides', {
       action: 'PrintSlides',
       blockID: this.blockID,
       printRequestedBy: store.state.username,
@@ -341,7 +317,7 @@ export default {
     updateSlideToPrintValue(strSlideID, blChecked)
     {
             //Send api the following:  action: UpdateSlideToPrint slideid=? value=?
-      axios.post(store.state.apiURL + '/updateslidetoprint', {
+      axios.post(store.getters.getApiUrl + '/updateslidetoprint', {
         action: 'UpdateSlideToPrintValue',
         slideId: strSlideID,
         toPrintStatus: blChecked
@@ -356,7 +332,7 @@ export default {
     },
     GetPartBlockCurrentAndTotals() {
         console.log('start GetPartBlockCurrentAndTotals')
-              axios.post(store.state.apiURL + '/getpartblockcurrentandtotals', {
+              axios.post(store.getters.getApiUrl + '/getpartblockcurrentandtotals', {
               blockID: this.blockID
             })
             .then(apidata => {
@@ -394,8 +370,6 @@ export default {
       this.currentBlock = ''
       this.totalParts = ''
       this.currentPart = ''
-      //Always disable input textbox now that we're scanning
-      //document.getElementById("InputBlockID").disabled = false;
       this.slides = {}
       this.setFocusToInputBlockID()
     },
@@ -419,13 +393,6 @@ export default {
       }
     },
     inputTextBoxDisabled(){
-      //if (this.validuser=='f' || !blockID ) {
-      //if (this.validuser) {
-      //  return false;
-      //} else {
-      //  return true;
-      //}
-      //always disable input text box now that values are being scanned
       return true
     },
     inputNoBarcodeButtonDisabled(){

@@ -11,7 +11,12 @@ module.exports = {
   pullSlides: pullSlides,
   getPartBlockCurrentAndTotals: getPartBlockCurrentAndTotals,
   histodata: histoData,
-  slideDistribution: slideDistribution
+  slideDistribution: slideDistribution,
+  GetBlockData: GetBlockData,
+  SetBlockData: SetBlockData,
+  GetStatusData: GetStatusData,
+  GetCassEngLoc: GetCassEngLoc,
+  caseinquiry: GetCaseInquery
 }
 
 function printSlides (request, response, callback) {
@@ -129,8 +134,8 @@ function printSlides (request, response, callback) {
           })
 
         // Update query to say slide has been printed
-        strSQLUpdateStatement = `UPDATE \`OPENLIS\`.\`tblSlides\` 
-                                                    SET 
+        strSQLUpdateStatement = `UPDATE \`OPENLIS\`.\`tblSlides\`
+                                                    SET
                                                         \`Status\` = 'Printed',
                                                         \`Printed\` = TRUE,
                                                         \`DateTimePrinted\` = '` + strDate + `',
@@ -207,6 +212,120 @@ function printSlides (request, response, callback) {
 //  // get some slide parameters here
 // }
 
+function GetCaseInquery (request, response, callback) {
+  //= ==========================================================================================
+  //
+  //    Function GetCaseInquery
+  //      Get Case Inquery Data
+  //
+  //    Author: Justin Dial
+  //
+  //
+  //    When to call:
+  //      To get data for use with case inqueries
+  //= ===========================================================================================
+
+  var strStrAccessionID = request.body.ACCESSIONID
+
+  var strSQL =
+`
+/*qryCaseInquiry*/
+      SELECT tblSlides.SlideID, 
+              tblSlides.StainLabel, 
+              tblSlideDistribution.Status, 
+              tblSlideDistribution.SlideDistributionLocation, 
+              tblSlideDistribution.DTReadyForCourier, 
+              tblSlides.LocationPrinted, 
+              tblSlides.DTPrinted, 
+              tblSlides.StainOrderDate, 
+              tblSlideDistribution.SlideTray,
+              tblBlock.DateTimeEngraved
+      FROM   (tblSlides 
+              LEFT JOIN tblSlideDistribution 
+                      ON tblSlides.SlideDistributionID = 
+                        tblSlideDistribution.SlideDistributionID) 
+              LEFT JOIN tblBlock 
+                    ON tblSlides.BlockID = tblBlock.BlockID 
+      WHERE  (( ( tblSlides.AccessionID ) = "` + strStrAccessionID + `"));
+`
+
+  console.log(strSQL)
+
+  // Connect to the database
+  var con = mysql.createConnection(mysqlConfig)
+  console.log('Connected!')
+
+  con.query(strSQL, function (err, result) {
+    if (err) {
+      console.log(err)
+    } else {
+      console.log('Completed query.')
+      console.log(result)
+      response.json(result)
+    }
+    con.end()
+  }) // End query
+}
+
+function GetStatusData (request, response, callback) {
+  //= ==========================================================================================
+  //
+  //    Function GetStatusData
+  //      Get Status Data
+  //
+  //    Author: Justin Dial
+  //
+  //
+  //    When to call:
+  //      To get Status of block/slides
+  //= ===========================================================================================
+  var strSQL =
+`
+select count(*) as 'count','pre Embedded'
+from tblBlock
+where 1 not in (select IDOfMaterial from tblActionTracking)
+and BlockStatus is null
+and PartDescription not like 'B%' -- bone marrow
+and DateTimeEngraved > now() - interval 1 day
+and TimesEngraved>0
+union all
+select count(action),action 
+from tblActionTracking
+where ActionDateTime > now() - interval 1 day
+and action='Embedded'
+group by action
+union all
+select count(action),action 
+from tblActionTracking
+where ActionDateTime > now() - interval 1 day
+and action='SlidesPrintedOffBlock'
+group by action
+union all
+SELECT count(distinct BlockID),'distributed'
+FROM tblSlides
+INNER JOIN   tblSlideDistribution on tblSlides.SlideDistributionID = tblSlideDistribution.SlideDistributionID
+WHERE tblSlideDistribution.DTReadyForCourier >date_format(curdate() - if(weekday(curdate()) >= 5, if(weekday(curdate()) = 6, 2, 1), 1),'%Y-%m-%d 18:00:00');
+`
+  console.log(strSQL)
+
+  // Connect to the database
+  var con = mysql.createConnection(mysqlConfig)
+  console.log('Connected!')
+
+  con.query(strSQL, function (err, result) {
+    if (err) {
+      console.log(err)
+    } else {
+      console.log('Completed query.')
+      console.log(result)
+      response.json(result)
+    }
+    con.end()
+  }) // End query
+}
+
+
+
 function getUserInfo (request, response, callback) {
   //= ==========================================================================================
   //
@@ -235,6 +354,148 @@ function getUserInfo (request, response, callback) {
       console.log(err)
     } else {
       console.log('Completed query.')
+      console.log(result)
+      response.json(result)
+    }
+    con.end()
+  }) // End query
+}
+
+function GetBlockData (request, response, callback) {
+  //= ==========================================================================================
+  //
+  //    Function blockdata
+  //      Get Block Info
+  //
+  //    Author: Justin Dial
+  //
+  //
+  //    When to call:
+  //      To get block info
+  //= ===========================================================================================
+  var blockID = request.body.blockID
+
+  var strSQL = `SELECT * FROM OPENLIS.tblBlock
+              WHERE \`BlockID\` = '` + blockID + `';`
+
+  console.log(strSQL)
+
+  // Connect to the database
+  var con = mysql.createConnection(mysqlConfig)
+  console.log('Connected!')
+
+  con.query(strSQL, function (err, result) {
+    if (err) {
+      console.log(err)
+    } else {
+      console.log('Completed query blockdata')
+      console.log(result)
+      response.json(result)
+    }
+    con.end()
+  }) // End query
+}
+
+function SetBlockData (request, response, callback) {
+  //= ==========================================================================================
+  //
+  //    Function blockdata
+  //      Set Block Info
+  //
+  //    Author: Justin Dial
+  //
+  //
+  //    When to call:
+  //      To set block info
+  //= ===========================================================================================
+  var blockData            = request.body.blockData.data[0]
+  let ScanLocation         = request.body.scanlocation
+  let userid               = request.body.userid
+  let TimesScannedAtEmbedding   = blockData.TimesScannedAtEmbedding
+  let BlockID				       = blockData.BlockID
+  if (!TimesScannedAtEmbedding){TimesScannedAtEmbedding=1}
+  else{TimesScannedAtEmbedding = TimesScannedAtEmbedding+1}
+
+  var strSQL =
+  `
+  UPDATE OPENLIS.tblBlock
+      SET
+      BlockStatus       = 'Embedded',
+      embedded          = 1,
+      embeddedDT        = NOW(),
+      TimesScannedAtEmbedding = ${TimesScannedAtEmbedding}
+    WHERE BlockID = '${BlockID}';
+  `
+
+  console.log(strSQL)
+  var con = mysql.createConnection(mysqlConfig)
+  con.query(strSQL, function (err, result) {
+    if (err) {
+      response.send(err)
+      console.log(err)
+    // On Error, close connection
+    } else {
+    }
+  })
+
+  var strSQL =
+    `
+    INSERT INTO OPENLIS.tblActionTracking
+      (Action,
+      IDOfMaterial,
+      User,
+      Station,
+      ActionDateTime)
+   VALUES
+      ('Embedded',
+      '${BlockID}',
+      '${userid}',
+      '${ScanLocation}',
+      NOW());
+    `
+      console.log(strSQL)
+  var con = mysql.createConnection(mysqlConfig)
+  con.query(strSQL, function (err, result) {
+    if (err) {
+      response.send(err)
+      console.log(err)
+    } else {
+    }
+    con.end()
+  })
+  response.send('OK')
+}
+
+function GetCassEngLoc (request, response, callback) {
+  //= ==========================================================================================
+  //
+  //    Function GetCassEngLoc
+  //      Get Cassette Engraver Locations
+  //
+  //    Author: Justin Dial
+  //
+  //
+  //    When to call:
+  //      To get cassette engraver locations
+  //= ===========================================================================================
+
+  var strSQL =
+`
+select old_value,new_value,right_left_value
+from engraver_lookup;
+`
+
+  console.log(strSQL)
+
+  // Connect to the database
+  var con = mysql.createConnection(mysqlConfig)
+  console.log('Connected!')
+
+  con.query(strSQL, function (err, result) {
+    if (err) {
+      console.log(err)
+    } else {
+      console.log('Completed query cassette engraver')
       console.log(result)
       response.json(result)
     }
@@ -318,7 +579,7 @@ function updateSlideToPrint (request, response, callback) {
   var strSlideID = request.body.slideId
   var blToPrintStatus = request.body.toPrintStatus
 
-  var strSQL = `UPDATE \`OPENLIS\`.\`tblSlides\` 
+  var strSQL = `UPDATE \`OPENLIS\`.\`tblSlides\`
             SET
               \`ToBePrinted\` = ` + blToPrintStatus +
             ` WHERE \`SlideID\` = '` + strSlideID + `';`
@@ -387,7 +648,7 @@ function pullSlides (request, response, callback) {
   tblSlides.SiteLabel,
   tblSlides.SlideID,
   tblSlides.Status
-FROM   tblSlides  
+FROM   tblSlides
 WHERE  (( ( tblSlides.BlockID ) = '${strBlockID}' )); `
   // console.log(strSQL)
 
@@ -503,6 +764,7 @@ function slideDistribution (request, response, callback) {
     case 'MarkSlideToBeDistributed':
       console.log('Mark Slide To Be Distributed')
       let strSlideDistID = request.body.slidedistid
+      let strSlideTray = request.body.slidetray
       console.log('Slide Distr ID:')
       console.log(strSlideDistID)
       let strSlideID = request.body.slideid
@@ -528,8 +790,11 @@ function slideDistribution (request, response, callback) {
   			(SELECT SlideID,AccessionID FROM tblSlides where tblSlides.SlideDistributionID = ${strSlideDistID} GROUP BY SlideID,AccessionID) ts3
               on ts1.AccessionID = ts3.AccessionID
   	order by ts3.SlideID;
+  	      SELECT Count(SlideID) AS 'SlidesInTray'
+      FROM tblSlides
+      WHERE SlideDistributionID = (SELECT max(subTblSlideDistribution.SlideDistributionID) as SlideDistID FROM tblSlideDistribution as subTblSlideDistribution where SlideTray = '${strSlideTray}');
       SELECT Count(qrySubBlocksCorrespondingToPendingSlides.subBlockID) AS BlockCountInTray
-      FROM (SELECT subTblSlides.BlockID AS subBlockID  
+      FROM (SELECT subTblSlides.BlockID AS subBlockID
             FROM tblSlides as subTblSlides
             WHERE subTblSlides.SlideDistributionID = ${strSlideDistID}
             GROUP BY subTblSlides.BlockID) AS qrySubBlocksCorrespondingToPendingSlides
@@ -588,6 +853,12 @@ function slideDistribution (request, response, callback) {
       break
     case 'AssignTrayNewLocation':
       console.log('AssignTrayNewLocation')
+
+      // userid: store.state.username,
+      // slidedistrloc: strLocID,
+      // scanlocation: store.state.stationName,
+      // slidetray: this.slidetrayID
+
       let strUserTrayNewLoc = request.body.userid
       let strSlideDistrLocIDForST = request.body.slidedistrloc
       let strScanLocationForST = request.body.scanlocation
@@ -625,11 +896,11 @@ function slideDistribution (request, response, callback) {
 
       let strSQLExistingST = `
       /*Query01*/
-      SELECT max(subTblSlideDistribution.SlideDistributionID) as CurrentSlideDistID 
+      SELECT max(subTblSlideDistribution.SlideDistributionID) as CurrentSlideDistID
       FROM tblSlideDistribution as subTblSlideDistribution
-      WHERE SlideTray = '${strSlideTrayIDExistingST}'; 
+      WHERE SlideTray = '${strSlideTrayIDExistingST}';
       /*qrySlideCountInTrayBySlideTray*/
-      SELECT 
+      SELECT
           tblSlides.SlideID,
           qrySubSlideCountsByAcc.CaseSlidesInTray,
           qrySubSlideCountsByAcc.CaseSlidesTotal,
@@ -637,13 +908,13 @@ function slideDistribution (request, response, callback) {
       FROM
           tblSlides
               INNER JOIN
-          (SELECT 
+          (SELECT
               qrySlideCountInTrayByCase.AccessionID,
                   qrySlideCountInTrayByCase.CaseSlidesInTray,
                   vwSlideCountByCase.CaseSlidesTotal,
                   (vwSlideCountByCase.CaseSlidesTotal - qrySlideCountInTrayByCase.CaseSlidesInTray) AS CaseSlidesNotInTray
           FROM
-              (SELECT 
+              (SELECT
               tblSlides.AccessionID,
                   COUNT(tblSlides.SlideID) AS CaseSlidesInTray
           FROM
@@ -653,12 +924,12 @@ function slideDistribution (request, response, callback) {
           GROUP BY tblSlides.AccessionID , tblSlides.SlideCount) AS qrySlideCountInTrayByCase
           INNER JOIN vwSlideCountByCase ON qrySlideCountInTrayByCase.AccessionID = vwSlideCountByCase.AccessionID) AS qrySubSlideCountsByAcc ON qrySubSlideCountsByAcc.AccessionID = tblSlides.AccessionID
       WHERE
-          tblSlides.SlideDistributionID = (SELECT max(subTblSlideDistribution.SlideDistributionID) as SlideDistID FROM tblSlideDistribution as subTblSlideDistribution where SlideTray = '${strSlideTrayIDExistingST}');     
+          tblSlides.SlideDistributionID = (SELECT max(subTblSlideDistribution.SlideDistributionID) as SlideDistID FROM tblSlideDistribution as subTblSlideDistribution where SlideTray = '${strSlideTrayIDExistingST}');
       SELECT Count(SlideID) AS 'SlidesInTray'
       FROM tblSlides
       WHERE SlideDistributionID = (SELECT max(subTblSlideDistribution.SlideDistributionID) as SlideDistID FROM tblSlideDistribution as subTblSlideDistribution where SlideTray = '${strSlideTrayIDExistingST}');
       SELECT Count(qrySubBlocksCorrespondingToPendingSlides.subBlockID) AS BlockCountInTray
-      FROM (SELECT subTblSlides.BlockID AS subBlockID  
+      FROM (SELECT subTblSlides.BlockID AS subBlockID
             FROM tblSlides as subTblSlides
             WHERE subTblSlides.SlideDistributionID = (SELECT max(subTblSlideDistribution.SlideDistributionID) as SlideDistID FROM tblSlideDistribution as subTblSlideDistribution where SlideTray = '${strSlideTrayIDExistingST}')
             GROUP BY subTblSlides.BlockID) AS qrySubBlocksCorrespondingToPendingSlides
