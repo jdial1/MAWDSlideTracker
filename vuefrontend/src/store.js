@@ -11,11 +11,18 @@ export default new Vuex.Store({
     validuser: false,
     stationName: '',
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     testmode: false,
 =======
     version:'3.10',
     nodeBackendTestMode: true,
     vueFrontendTestMode:true,
+=======
+    backendVersion:'--',
+    frontendVersion:'4.0',
+    nodeBackendTestMode: true,
+    vueFrontendTestMode:false,
+>>>>>>> Stashed changes
     production:false,
 >>>>>>> Stashed changes
     slideQueuePath: '',

@@ -99,7 +99,7 @@ export default {
             scanbadge() {
                     if (this.scannedbadgeinput.substring(0, 4) == "SBDG") {
                         this.userid = this.scannedbadgeinput.substring(4);
-                        axios.post(store.getters.getApiUrl + '/getuserinfo', {
+                        axios.post(store.getters.getApiUrl + '/getUserInfo', {
                                 userid: this.userid
                             })
                             .then(userinfodata => {

@@ -98,9 +98,7 @@
 <div class="container">
  <div class="row row-flex">
   <!--<div class="col-sm-2 mt-2" v-for="result in slides">-->
-
-
-        <div class="col-md-2 col-sm-6" v-for="result in slides">
+        <div class="col-md-2 col-sm-6" v-for="result in slides" v-if="slides.length>0">
            <div class="glassslide">
              <label>
              <div class=slidelabel>
@@ -109,10 +107,14 @@
                         {{ result.Patient.substring(0,9) }}
                         </div>
                       <div class=slidebody>
-                      {{ result.StainLabel }}<br>
-                      Level {{ result.SlideInst}} of {{ result.slidecount}}<br>
-                      {{ result.StainOrderDate}}<br>
-                      {{ result.OrderPathInitials}}<br>
+                      {{ result.StainLabel }}
+                        <br>
+                      Level {{ result.SlideInst}} of {{ result.slidecount}}
+                        <br>
+                      {{ dateFormatter(result.StainOrderDate)}}
+                        <br>
+                      {{ result.OrderPathInitials}}
+                        <br>
                       </div>
 
                       <div class=slidefooter>
@@ -124,13 +126,21 @@
             {{ result.SlideDistributionKeyword}}
               <br>
                 <br><br>
+<<<<<<< Updated upstream
                 Print Slide <input type="checkbox" v-model=result.ToBePrinted @change="updateSlideToPrintValue(result.SlideID, result.ToBePrinted)" >
+=======
+                <b-checkbox v-model=result.ToBePrinted @change="updateSlideToPrintValue(result.SlideID, result.ToBePrinted)" >Print Slide </b-checkbox>
+>>>>>>> Stashed changes
                   <br><br>
                   Status:
                   <br>
                 {{ result.Status}}
                 <br>
+<<<<<<< Updated upstream
                 <b-button :value="result.SlideID" variant="warning" @click="addSlide($event,result.SlideID)" v-if="result.SlideInst===result.slidecount">Add Slide</b-button>
+=======
+                <b-button :value="result.SlideID" block   variant="warning" @click="addSlide($event,result.SlideID)" v-if="result.SlideInst===result.slidecount">Add Slide</b-button>
+>>>>>>> Stashed changes
               </p>
             </label>
 
@@ -148,13 +158,6 @@
 import axios from 'axios'
 import store from '../store.js'
 
-
-// define the external API URL
-const API_URLWithSlideParameters = store.getters.getApiUrl + '/slidetracker/slideparameters?blockid='  //For Get Call
-// Helper function to help build urls to fetch slide details from blockid
-function buildUrl(blockID) {
-  return `${API_URLWithSlideParameters}${blockID}`
-}
 export default {
   name: 'slides', // component name
   props: {
@@ -188,12 +191,6 @@ export default {
 
 
   sockets: {
-      connect: function () {
-          console.log('socket connected within slide')
-      },
-      customEmit: function (data) {
-          console.log(' within slide this method was fired by the socket server. eg: io.emit("customEmit", data)')
-      },
       stream: function(data) {
           console.log('socket on within slide')
           console.log('within slide:',data)
@@ -253,8 +250,36 @@ export default {
       }
 
     },
-    pullOrPrintSlides()
-    {
+    addSlide(e,slideID){
+      console.log("TESTING: "+slideID)
+      let obj = this.slides.find(o => o.SlideID === e.target.value)
+      let newSlideVals = {}
+      for(var k in obj) newSlideVals[k]=obj[k];
+
+      newSlideVals["ToBePrinted"]=0
+      newSlideVals["SlideInst"]=obj['SlideInst']+1
+      newSlideVals["SlideID"]=obj['SlideID'].match(/(.*)\.(.*)/)[1]+'.'+(parseInt(obj['SlideID'].match(/(.*)\.(.*)/)[2])+1)
+      newSlideVals["OldSlideID"]=obj['SlideID']
+
+      this.slides.splice(this.slides.indexOf(obj)+1, 0, newSlideVals);
+      let updtList = this.slides.filter(o => o.SlideID.match(/(.*)\.(.*)/)[1] === obj['SlideID'].match(/(.*)\.(.*)/)[1])
+      for (var item in updtList){
+        updtList[item]['slidecount']++
+      }
+      axios.post(store.getters.getApiUrl + '/addSlide', {
+        action: 'AddSlide',
+        slideVals:newSlideVals,
+        curRoute : this.currentRouteName
+      })
+          .then(function (response) {
+            console.log('addSlide')
+            console.log(response)
+          })
+          .catch(function (error) {
+            console.log(error)
+          });
+    },
+    pullOrPrintSlides() {
 
       if (this.formstatus == 'loadslides') {
         this.pullSlides();
@@ -267,11 +292,15 @@ export default {
     }
 
   },
+<<<<<<< Updated upstream
 
   printSlides()
   {
     console.log('start print slides')
     console.log(store.state.slideQueuePath)
+=======
+    printSlides() {
+>>>>>>> Stashed changes
 
       axios.post(store.getters.getApiUrl + '/printslides', {
       action: 'PrintSlides',
@@ -297,23 +326,16 @@ export default {
   },
 
     pullSlides() {
-           console.log('start pull slides');
-      //this.GetPartBlockCurrentAndTotals()
-      let blockID = this.blockID
-      if (!blockID) {
-        alert('please enter block ID to pull up slides')
-        return
-      }
+      console.log('start pull slides');
       this.loading = true
-
-      //uses fetch as opposed to Axios
-      fetch(buildUrl(blockID))
-        //.then(response => response.json())
-        .then(function(response){
-          return response.json()
-        })
-        .then(data => {
+      axios.post(store.getters.getApiUrl + '/pullSlides', {
+        action: 'pullSlides',
+        blockID: this.blockID,
+        curRoute : this.currentRouteName
+      })
+        .then(response => {
           this.loading = false
+<<<<<<< Updated upstream
           this.error_message = ''
           if (data.errorcode) {
             this.error_message = `Sorry, block with blockID '${blockID}' not found.`
@@ -322,6 +344,9 @@ export default {
           }
 
           this.slides = data;
+=======
+          this.slides = response.data;
+>>>>>>> Stashed changes
           this.formstatus = 'readytoprint';
           document.getElementById("InputBlockID").disabled = true;
           this.formstatuslabel = 'Print Slides';
@@ -330,10 +355,9 @@ export default {
         }).catch((e) => {
           console.log(e)
         })
-        this.GetPartBlockCurrentAndTotals()
+        //this.GetPartBlockCurrentAndTotals()
     },
-    updateSlideToPrintValue(strSlideID, blChecked)
-    {
+    updateSlideToPrintValue(strSlideID, blChecked) {
             //Send api the following:  action: UpdateSlideToPrint slideid=? value=?
       axios.post(store.getters.getApiUrl + '/updateslidetoprint', {
         action: 'UpdateSlideToPrintValue',
@@ -350,17 +374,18 @@ export default {
     },
     GetPartBlockCurrentAndTotals() {
         console.log('start GetPartBlockCurrentAndTotals')
+<<<<<<< Updated upstream
               axios.post(store.getters.getApiUrl + '/getpartblockcurrentandtotals', {
               blockID: this.blockID
+=======
+              axios.post(store.getters.getApiUrl + '/getPartBlockCurrentAndTotals', {
+              blockID: this.blockID,
+              curRoute : this.currentRouteName
+>>>>>>> Stashed changes
             })
             .then(apidata => {
               this.loading = false;
               this.error_message = '';
-              if (apidata.errorcode) {
-                this.error_message = `Error looking up badge.`
-                console.log('error')
-                return
-              }
               console.log('apidata:', apidata);
               let temp = {}
               temp = apidata.data
@@ -369,10 +394,6 @@ export default {
               this.currentBlock = temp.currentblock
               this.totalParts = temp.totalparts
               this.currentPart = temp.currentpart
-
-
-            }).catch((e) => {
-              console.log(e)
             })
             .catch(function (error) {
               console.log("error:")
@@ -399,6 +420,9 @@ export default {
       this.pullSlides()
       //Collapse additional options
       document.getElementById("btnManualBlockIDToggle").click()
+    },
+    dateFormatter(str){
+      return str.replace('T', ' ').replace('Z', ' ').split('.')[0].slice(0,-3)
     },
   },
   computed:{

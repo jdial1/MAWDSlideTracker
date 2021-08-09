@@ -205,6 +205,7 @@ function printSlides (request, response, callback) {
   console.log(`${strBlockID}`)
   response.send('Slides have been sent to Slide Printer')
 }
+<<<<<<< Updated upstream
 
 // function getSlideParameters (request, response, callback) {
 //  // get some slide parameters here
@@ -224,6 +225,75 @@ function GetCaseInquery (request, response, callback) {
   //    When to call:
   //      To get data for use with case inqueries
   //= ===========================================================================================
+=======
+export async function pullSlides (request, response) {
+
+  console.log(JSON.stringify(request.body))
+  var strBlockID = request.body.blockID
+  var strSQL = `
+SELECT tblSlides.AccessionID,
+  tblSlides.PartDesignator,
+  tblSlides.BlockDesignator,
+  tblSlides.Patient,
+  tblSlides.StainLabel,
+  tblSlides.ToBePrinted,
+  tblSlides.SlideInst,
+  tblSlides.slidecount,
+  tblSlides.StainOrderDate,
+  tblSlides.SiteLabel,
+  tblSlides.SlideID,
+  tblSlides.Status
+FROM   tblSlides
+WHERE  (( ( tblSlides.BlockID ) = '${strBlockID}' )); `
+  var result = await db_query(strSQL)
+  if ('error' in result) {throw result['error']}
+  response.json(result)
+}
+export async function addSlide(request, response){
+
+  console.log("KEYS: "+JSON.stringify(request.body.slideVals))
+  var slideVals = request.body.slideVals
+  var strSQL = `
+  
+  `
+  var strSQL =
+  `
+        INSERT INTO tblSlides
+            (
+            slideid,blockid,blockstaininstid,partinst,
+             blockinst,staininst,slideinst,
+             slidecount,stainid,blockdesignator,
+             partdesignator,stainorderdate,
+             orderingpath,department,stainlabel,
+             patient,SiteLabel,AccessionID,
+			 LastTimeUpdatedFromCoPath,
+			 specimen_id,Audit
+			 )
+             Values
+             ()
+  `
+  //var result = await db_query(strSQL)
+  //if ('error' in result) {throw result['error']}
+  //response.send('OK')
+}
+export async function updateSlideToPrint (request, response) {
+
+  var strResponse = ''
+  var strAction = request.body.action
+  var strSlideID = request.body.slideId
+  var blToPrintStatus = request.body.toPrintStatus
+
+  var strSQL = `UPDATE \`OPENLIS\`.\`tblSlides\`
+            SET
+              \`ToBePrinted\` = ` + blToPrintStatus +
+      ` WHERE \`SlideID\` = '` + strSlideID + `';`
+
+  var result = await db_query(strSQL)
+  if ('error' in result) {throw result['error']}
+  response.send('OK')
+}
+export async function GetCaseInquery (request, response) {
+>>>>>>> Stashed changes
 
   var strStrAccessionID = request.body.ACCESSIONID
 
@@ -561,6 +631,7 @@ function getPartBlockCurrentAndTotals (request, response, callback) {
     con.end()
   }) // End query
 }
+<<<<<<< Updated upstream
 
 function updateSlideToPrint (request, response, callback) {
   //= ==========================================================================================
@@ -688,6 +759,12 @@ function histoData (request, response, callback) {
 
   console.log('histodata start')
   // var strAction = request.body.action
+=======
+
+
+
+export async function histoData (request, response) {
+>>>>>>> Stashed changes
   var strFromDateTime = request.body.fromdatetime
   var strToDateTime = request.body.todatetime
   // var strFromDateTime = '2019-07-11 22:00'

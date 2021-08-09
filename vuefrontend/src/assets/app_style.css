@@ -17,7 +17,7 @@ body {
  text-rendering: optimizeLegibility;
       color: #e0dfdc;
       letter-spacing: .1em;
-      }
+}
 
 .customsubheadertext {
  text-rendering: optimizeLegibility;
@@ -25,21 +25,23 @@ body {
       letter-spacing: .1em;
       color: white;
       text-shadow: -1px -1px 0 #2c2d2d, 1px -1px 0 #2c2d2d, -1px 1px 0 #2c2d2d, 1px 1px 0 #2c2d2d;
-      }
+}
 
 .glassslide {
   background: rgba(255, 255, 255, 1);
   height: 400px;
+<<<<<<< Updated upstream
 
   background: -moz-linear-gradient(top,  rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
   background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(255,255,255,1)), color-stop(100%,rgba(255,255,255,0)));
   background: -webkit-linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(255,255,255,0) 100%);
   background: -o-linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(255,255,255,0) 100%);
   background: -ms-linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(255,255,255,0) 100%);
+=======
+  margin-top: 7px;
+>>>>>>> Stashed changes
   background: linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(255,255,255,0) 100%);
   border: 1px solid #DDDBD7;
-  -webkit-box-shadow: 3px 3px 10px rgba(0,0,0,0.4),	inset 0 0 10px rgba(255,255,255, 0.8);
-  -moz-box-shadow: 	3px 3px 10px rgba(0,0,0,0.4),	inset 0 0 10px rgba(255,255,255, 0.8);
   box-shadow: 		3px 3px 10px rgba(0,0,0,0.4),	inset 0 0 10px rgba(255,255,255, 0.8);
   -webkit-border-radius: 5px;
   -moz-border-radius: 10px;
@@ -55,45 +57,41 @@ body {
 }
 
 .slideheader{
-  display: block;
-font-size: 1.30em;
-margin-block-start: 1em;
-margin-block-end: 1em;
-margin-inline-start: 0px;
-margin-inline-end: 0px;
-font-weight: bold;
-text-align: center;
-margin-top:0px;
-margin-bottom:-10px;
-padding: 0px;
-padding-top: 0px;
-padding-right: -5px;
-padding-bottom: 0px;
-padding-left: -5px;
-color: black;
+    display: block;
+    font-size: 1.30em;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    font-weight: bold;
+    text-align: center;
+    margin-top:0px;
+    margin-bottom:-10px;
+    padding: 5px -5px;
+    color: black;
     line-height: normal !important;
 }
 .slidebody{
-  display: block;
-margin-block-start: 1em;
-margin-block-end: 1em;
-margin-inline-start: 0px;
-margin-inline-end: 0px;
-text-align: left;
-margin-bottom:-10px;
-color: black;
-  line-height: normal !important;
+    display: block;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    text-align: left;
+    margin-bottom:-10px;
+    color: black;
+    line-height: normal !important;
 }
 .slidefooter{
-  display: block;
-margin-block-start: 1em;
-margin-block-end: 1em;
-margin-inline-start: 0px;
-margin-inline-end: 0px;
-text-align: center;
-margin-top:-7px;
-margin-bottom:-10px;
-color: black;
+    display: block;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    text-align: center;
+    margin-top:-7px;
+    margin-bottom:-10px;
+    color: black;
     line-height: normal !important;
 }
 
