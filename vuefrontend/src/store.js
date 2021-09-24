@@ -17,7 +17,8 @@ export default new Vuex.Store({
     nodeBackendTestMode: false,
     vueFrontendTestMode:false,
     production:false,
-    socketConn:false,
+    LocalSocketConn:false,
+    BackendSocketConn:false,
     backendConn:false,
     slideQueuePath: '',
     testLocalapiURL: 'http://localhost:2081',
@@ -29,6 +30,33 @@ export default new Vuex.Store({
   mutations: {
     increment (state) {
       state.count++
+    },
+    local_connect (state) {
+      state.LocalSocketConn = true
+      console.log('local_socket_connect')
+    },
+    backend_connect (state) {
+      state.BackendSocketConn = true
+      console.log('backend_socket_connect')
+      this._vm.$socket.emit('version',state.frontendVersion)
+    },
+    local_disconnect (state) {
+      state.LocalSocketConn = false
+      console.log('local_disconnect')
+    },
+    backend_disconnect (state) {
+      state.BackendSocketConn = false
+      console.log('backend_disconnect')
+    },
+    local_stream(context) {
+      console.log('local_socket_stream: '+context)
+    },
+    backend_message (context) {
+      console.log('backend_socket_message: '+context)
+    },
+    backend_BackendVersion (state,context) {
+      console.log('backend_backendVersion: '+context)
+      state.backendVersion = context
     },
     SetUserName (state, strUsername) {
       state.username = strUsername
@@ -42,8 +70,11 @@ export default new Vuex.Store({
     SetSlideQueuePath (state, strTemp) {
       state.slideQueuePath = strTemp
     },
-    SetSocketConn (state, strTemp) {
-      state.socketConn = strTemp
+    SetLocalSocketConn (state, strTemp) {
+      state.LocalSocketConn = strTemp
+    },
+    SetBackendSocketConn (state, strTemp) {
+      state.BackendSocketConn = strTemp
     },
     SetbackendVersion (state, strTemp) {
       state.backendVersion = strTemp
@@ -56,6 +87,9 @@ export default new Vuex.Store({
     },
     PushBlockCountTableItems (state, objTmp) {
       state.blockCountTableItems.push(objTmp)
+    },
+    production(state, strTemp){
+      state.production = strTemp;
     }
   },
   actions: {
@@ -76,7 +110,7 @@ export default new Vuex.Store({
             reject(error)
           })
       })
-    },
+    }
   },
   getters: {
     BlockCountTableFields: (state) => {
@@ -106,8 +140,11 @@ export default new Vuex.Store({
     GetFEVersion: (state) => {
       return state.frontendVersion
     },
-    GetSocketStatus: (state) => {
-      return state.socketConn
+    GetLocalSocketStatus: (state) => {
+      return state.LocalSocketConn
+    },
+    GetBackendSocketStatus: (state) => {
+      return state.BackendSocketConn
     },
     GetBackendStatus: (state) => {
       return state.backendConn

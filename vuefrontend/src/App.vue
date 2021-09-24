@@ -13,11 +13,11 @@
         <b-icon v-if="$store.getters.GetProduction" icon="check-square" scale="1" variant="success"></b-icon>
         <b-icon v-if="!$store.getters.GetProduction" icon="x-circle" scale="1" variant="danger"></b-icon>
         &nbsp; Socket &nbsp;
-        <b-icon v-if="$store.getters.GetSocketStatus" icon="check-square" scale="1" variant="success"></b-icon>
-        <b-icon v-if="!$store.getters.GetSocketStatus" icon="x-circle" scale="1" variant="danger"></b-icon>
+        <b-icon v-if="$store.getters.GetLocalSocketStatus" icon="check-square" scale="1" variant="success"></b-icon>
+        <b-icon v-if="!$store.getters.GetLocalSocketStatus" icon="x-circle" scale="1" variant="danger"></b-icon>
         &nbsp; Server &nbsp;
-        <b-icon v-if="$store.getters.GetBackendStatus" icon="check-square" scale="1" variant="success"></b-icon>
-        <b-icon v-if="!$store.getters.GetBackendStatus" icon="x-circle" scale="1" variant="danger"></b-icon>
+        <b-icon v-if="$store.getters.GetBackendSocketStatus" icon="check-square" scale="1" variant="success"></b-icon>
+        <b-icon v-if="!$store.getters.GetBackendSocketStatus" icon="x-circle" scale="1" variant="danger"></b-icon>
       </b-item>
       <b-item v-if="$store.getters.GetnodeBackendTestMode" class="navbar-brand"
               style="background-image: linear-gradient(#f3edd4, #ff6f69);margin-left: 15px">BACKEND LOCAL
@@ -81,18 +81,19 @@ export default {
     }
   },
   sockets: {
-    connect: function () {
-      console.log('socket connected')
-      store.commit('SetSocketConn', true)
-    },
-    disconnect: function () {
-      console.log('socket disconnected')
-      store.commit('SetSocketConn', false)
+    toast: function (data) {
+      console.log('toast')
+      if (data.type=='versionError'){
+        this.makeToast(data.text, data.text, data.color,9999999,"b-toaster-bottom-full")
+        this.refresh();
+      }
+      else{
+        this.makeToast(data.text, data.text, data.color,0)
+      }
     },
     stream: function (data) {
       console.log('socket on')
       this.validateScanData(data)
-
     }
   },
   mounted() {
@@ -101,18 +102,14 @@ export default {
     } else {
       store.commit('production', false)
     }
-    this.getBEVersion()
   },
   methods: {
-    getBEVersion() {
-      axios.get(store.getters.getApiUrl + '/getVersion')
-          .then(userinfodata => {
-            store.commit('SetbackendVersion', userinfodata.data)
-            store.commit('SetbackendConn', true)
-          }).catch((e) => {
-        this.makeToast("Log In Error: " + e, "Error", "danger")
-      })
+    refresh() {
+      setTimeout(function () {
+        location.reload()
+      }, 1000*60*5);
     },
+
     validateScanData(data) {
       switch (data.barcodeScanData.substring(0, 4)) {
         case 'HBLK':
@@ -169,13 +166,13 @@ export default {
       if (text === this.defaultbadgeinput) return {'background-color': '#dc3545'};
       return {'background-color': '#ffc107'};
     },
-    makeToast(content, title, variant = null, time = 1500) {
+    makeToast(content, title, variant = null, time = 1500,toaster_type= "b-toaster-top-left") {
       this.$bvToast.toast(content, {
         title: title,
         variant: variant,
         solid: true,
         autoHideDelay: time,
-        toaster: "b-toaster-top-left"
+        toaster: toaster_type
       })
     }
 
@@ -186,10 +183,8 @@ export default {
       return this.$route.name;
     },
     nodeEnv() {
-
       return process.env.NODE_ENV
     }
-
   }
 }
 </script>

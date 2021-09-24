@@ -22,7 +22,7 @@ get_comm()
 }).catch(()=>
     {
     console.error("!!!NO SCANNER FOUND!!!")
-    process.exit()
+    //process.exit()
     }
 )
 
@@ -31,15 +31,15 @@ io.on('connection', function (socket) {
   if(connectCounter>1){console.error('!!TOO MANY CONNECTIONS!!')}
   console.warn('socket.io connected on ', socketport)
 
-  parser.on('data', function (data) {
-      let blockType = {HBLK:'Block',HSLD:'Slide',LOCN:'Location',SLTR:'Slide Tray',SBDG:'Badge'}
-      console.info(blockType[data.substr(0,4)],'Scanned: ',data,'\n')
-      io.emit('stream', {
-      barcodeScanData: data,
-      stationName: strStationName,
-      slideQueuePath: strSlideQueuePath
-    })
-  })
+  // parser.on('data', function (data) {
+  //     let blockType = {HBLK:'Block',HSLD:'Slide',LOCN:'Location',SLTR:'Slide Tray',SBDG:'Badge'}
+  //     console.info(blockType[data.substr(0,4)],'Scanned: ',data,'\n')
+  //     io.emit('stream', {
+  //     barcodeScanData: data,
+  //     stationName: strStationName,
+  //     slideQueuePath: strSlideQueuePath
+  //   })
+  // })
 })
 
 io.on('disconnect', function() {
