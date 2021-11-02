@@ -26,13 +26,13 @@ function CheckLastQueryCache(queryName,waitTime=15){
     var now = Date.now()
     var lastTime = lastQueryTimes[queryName].date
     if (Math.abs(lastTime - now) < 60*1000*waitTime){
-      console.warn(queryName+" Cached Data")
+      console.info(queryName+" Cached Data")
       lastQueryTimes[queryName].data[0].timestamp = lastTime
       return lastQueryTimes[queryName].data
     }
-    console.warn(queryName+" Expired Data")
+    console.info(queryName+" Expired Data")
   }
-  console.warn(queryName+" DB Data")
+  console.info(queryName+" DB Data")
 }
 function  db_query(query) {
   return new Promise((resolve, reject) => {
@@ -99,17 +99,17 @@ async function printSlides (request, response) {
         // WriteSlideData
         // SlideID|AccessionID|SlideInst|PartDesignator|BlockDesignator|StainOrderDate|OrderingPath|Patient|SiteLabel|SlideDistributionKeyword|StainLabel
         var strFileWriteData = [
-              row.SlideID,
-              row.AccessionID,
-              row.SlideInst,
-              row.PartDesignator,
-              row.BlockDesignator,
-              row.StainOrderDate,
-              strOrderPathInitials,
-              row.Patient,
-              row.SiteLabel,
-              row.SlideDistributionKeyword,
-              row.StainLabel
+              row.SlideID||'',
+              row.AccessionID||'',
+              row.SlideInst||'',
+              row.PartDesignator||'',
+              row.BlockDesignator||'',
+              row.StainOrderDate||'',
+              strOrderPathInitials||'',
+              row.Patient||'',
+              row.SiteLabel||'',
+              row.SlideDistributionKeyword||'',
+              row.StainLabel||''
             ].join('|');
         var strSlideFlatFileFullName = strSlideQueuePath + row.SlideID + '_' + fileDate + '.txt'
         fs.writeFileSync(strSlideFlatFileFullName, strFileWriteData,
@@ -122,6 +122,10 @@ async function printSlides (request, response) {
         try {
           if (fs.existsSync(strSlideFlatFileFullName)) {
             console.log("FILE DOES EXIST: "+strSlideFlatFileFullName)
+          }
+          else{
+            console.error("FILE DOESNT EXIST: "+err)
+            response.send(err)
           }
         } catch(err) {
           console.error("FILE DOESNT EXIST: "+err)

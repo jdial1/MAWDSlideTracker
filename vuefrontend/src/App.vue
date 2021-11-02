@@ -107,7 +107,7 @@ export default {
     refresh() {
       setTimeout(function () {
         location.reload()
-      }, 1000*60*5);
+      }, 1000*60*5); //5 mins
     },
 
     validateScanData(data) {

@@ -34,7 +34,7 @@ let connectObj = {
 }
 
 
-// Vue.use(VueSocketIO, connectObj, store)
+ //Vue.use(VueSocketIO, connectObj, store)
 
 Vue.use(new VueSocketIO({
   debug: true,

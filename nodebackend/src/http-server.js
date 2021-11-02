@@ -1,13 +1,12 @@
 
 // Fastify & Express import
-const fastify = require('fastify')()
 const express = require('express')
+const app = express()
 const router = require('express').Router()
 const bodyParser = require('body-parser')
 const path = require('path');
 
-// Socket IO import
-var app = require('express')();
+// // Socket IO import
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
@@ -15,7 +14,7 @@ var io = require('socket.io')(http);
 const morgan = require('morgan')
 router.use(morgan('dev'));
 
-const version = '4.1'
+const version = '4.3'
 
 const ST = require('./slide-tracking/slide-tracker')
 const STR = require('./slide-tracking/reports')
@@ -45,7 +44,7 @@ io.on('connection', (socket) => {
     console.log('-> Client Version: '+arg);
     console.log('-> Server Version: '+version)
     if (arg!=version){
-      socket.emit("toast", {text:'The website version is old than expected: Reloading page in 5 minutes.',type:'versionError',color:'danger'});
+      socket.emit("toast", {text:'The website version ('+arg+') is old than expected ('+version+'): Please reload the page.',type:'versionError',color:'danger'});
     }
     socket.emit("BackendVersion", version);
   });
@@ -53,19 +52,19 @@ io.on('connection', (socket) => {
 });
 
 
-router.use(bodyParser.urlencoded({ extended: false }))
-router.use(bodyParser.json())
-router.use(express.static('dist'))
-router.use('/slidetracker', router)
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json())
+app.use(express.static('dist'))
+app.use('/slidetracker', router)
 
-
-
-router.use(function (req, res, next) {
+app.use(function (req, res, next) {
+  console.log('\n')
+  console.info('Route Requested: '+req.url.substring(1))
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE')
   res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type')
   res.setHeader('Access-Control-Allow-Credentials', true)
-  res.setHeader('Cache-Control', 'no-store')
+  res.setHeader('Cache-Control', 'no-cache, must-revalidate')
   res.setHeader('Cache-Control', 'max-age=0')
   if ('OPTIONS' === req.method) {
     console.log('\n')
@@ -76,7 +75,7 @@ router.use(function (req, res, next) {
   }
 })
 
-router.use(function (req, res) { //Check if requested route is in:
+app.use(function (req, res) { //Check if requested route is in:
   const route = req.url.substring(1)
   const socket = req.app.get("socket");
   if (!route.includes('socket.io')) {
@@ -96,8 +95,115 @@ router.use(function (req, res) { //Check if requested route is in:
   }
 })
 
-fastify.register(require('fastify-express'))
-    .after(() => {fastify.use(router)})
+
+///////// OLD ROUTES FAILOVER ////
+app.post('/getuserinfo', function (request, response) {
+  ST.getUserInfo(request, response, function (err, message) {
+    if (err) return console.log(err)
+    console.log(message)
+  })
+})
+
+app.post('/getpartblockcurrentandtotals', function (request, response) {
+  ST.getPartBlockCurrentAndTotals(request, response, function (err, message) {
+    if (err) return console.log(err)
+    console.log(message)
+  })
+})
+
+app.post('/updateslidetoprint', function (request, response) {
+  ST.updateSlideToPrint(request, response, function (err, message) {
+    if (err) return console.log(err)
+    console.log(message)
+  })
+})
+
+app.post('/printslides', function (request, response) {
+  ST.printSlides(request, response, function (err, message) {
+    if (err) return console.log(err)
+    console.log(message)
+  })
+})
+
+app.post('/histodata', function (request, response) {
+  ST.histoData(request, response, function (err, message) {
+    if (err) return console.log(err)
+    console.log(message)
+  })
+})
+
+app.post('/slidedistribution', function (request, response) {
+  ST.slideDistribution(request, response, function (err, message) {
+    if (err) return console.log(err)
+    console.log(message)
+  })
+})
+
+app.post('/GetBlockData', function (request, response) {
+  ST.GetBlockData(request, response, function (err, message) {
+    if (err) return console.log(err)
+    console.log(message)
+  })
+})
+
+app.post('/SetBlockData', function (request, response) {
+  ST.SetBlockData(request, response, function (err, message) {
+    if (err) return console.log(err)
+    console.log(message)
+  })
+})
+
+app.post('/GetStatusData', function (request, response) {
+  ST.GetStatusData(request, response, function (err, message) {
+    if (err) return console.log(err)
+    console.log(message)
+  })
+})
+
+app.post('/GetCassEngLoc', function (request, response) {
+  ST.GetCassEngLoc(request, response, function (err, message) {
+    if (err) return console.log(err)
+    console.log(message)
+  })
+})
+
+app.post('/caseinquiry', (request, response) => {
+  ST.caseinquiry(request, response, function (err, message) {
+    if (err) return console.log(err)
+    console.log(request)
+    console.log(message)
+  })
+})
+
+app.post('/reports', function (request, response) {
+  STR.reports(request, response, function (err, message) {
+    if (err) return console.log(err)
+    console.log(message)
+  })
+})
+
+app.get('/slideparameters', (request, response) => {
+  ST.pullSlides(request, response, function (err, message) {
+    if (err) return console.log(err)
+    console.log(message)
+  })
+})
+
+app.post('/caseblockslidecount', (request, response) => {
+  STCB.caseblockslidecount(request, response, function (err, message) {
+    if (err) return console.log(err)
+    console.log(message)
+  })
+})
+
+app.post('/caseblockslidecountdetails', (request, response) => {
+  STCB.caseblockslidecountdetails(request, response, function (err, message) {
+    if (err) return console.log(err)
+    console.log(message)
+  })
+})
+///////// OLD ROUTES FAILOVER ////
+
 
 module.exports = {start}
 
