@@ -1,7 +1,8 @@
 // vue.config.js
+const path = require("path");
+
+
 module.exports = {
-  // options...
   configureWebpack: {
     devtool: 'source-map'
-  }
 }

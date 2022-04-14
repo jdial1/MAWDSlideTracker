@@ -1,15 +1,17 @@
 // Home.vue
 
 <template>
-  <div class="col d-flex justify-content-center" style="font: normal small-caps normal 30px/1.4 'Arial';">
-    <b-card style="min-width: 80%;" header="Slide Status" >
-    <b-progress class="mt-2" :max="max" show-value>
-      <b-progress-bar :value="preEmbedded" variant="primary"><span>preEmbedded: <strong>{{ preEmbedded }} </strong></span></b-progress-bar>
-      <b-progress-bar :value="embedded" variant="success"><span>embedded: <strong>{{ embedded }}</strong></span></b-progress-bar>
-      <b-progress-bar :value="slidesCut" variant="warning"><span>slidesCut: <strong>{{ slidesCut}} </strong></span></b-progress-bar>
-      <b-progress-bar :value="distributed" variant="info"><span>distributed: <strong>{{ distributed }} </strong></span></b-progress-bar>
+  <div class="container">
+    <h1>Slide Status</h1>
+    <br>
+    <b-progress class="mx-auto" :max="max" show-value height="4rem" style="border:2px solid #000;max-width: 80%">
+      <b-progress-bar :value="preEmbedded" variant="primary"><span>Pre Embedded: <h3>{{ preEmbedded }}</h3></span> </b-progress-bar>
+      <b-progress-bar :value="embedded" variant="success" v-if="embedded>=(slidesCut/12)"><span>Embedded:     <h3>{{ embedded }}</h3></span></b-progress-bar>
+      <b-progress-bar :value="embedded*12" variant="secondary" v-if="embedded<(slidesCut/12)"><span>Embedded:     <h3>{{ embedded }}</h3></span></b-progress-bar>
+      <b-progress-bar :value="slidesCut" variant="warning"><span>Slides Cut: <h3>{{ slidesCut}}</h3> </span></b-progress-bar>
+      <b-progress-bar :value="distributed" variant="danger"><span>Distributed: <h3>{{ distributed }}</h3></span></b-progress-bar>
     </b-progress>
-    </b-card>
+    <i>Updated At: {{timestamp}}</i>
   </div>
 </template>
 
@@ -26,23 +28,23 @@ export default {
       embedded:0,
       slidesCut:0,
       distributed:0,
-      max:0
+      max:0,
+      timestamp:0
     }
   },
   mounted() {
-    console.log('MOUNTED')
     this.LoadData()
 
   },
   methods: {
      LoadData(){
      axios.post(store.getters.getApiUrl + '/GetStatusData', {
-       action: 'GetStatusData'
+       action: 'GetStatusData',
+       curRoute : this.currentRouteName
      })
          .then(apidata => {
-           console.log("AXIOS RESPONSE")
-           console.log(JSON.stringify(apidata))
            this.blockStatusData = apidata
+           this.timestamp = new Date(apidata.data[0].timestamp).toLocaleString().split(',')[1]
            this.preEmbedded = apidata.data[0]['count']
            this.embedded    = apidata.data[1]['count']
            this.slidesCut   = apidata.data[2]['count']
@@ -52,7 +54,22 @@ export default {
          })
 
 
-     }
+     },
+    makeToast(content, title, variant = null,time=1500,locn='b-toaster-top-left') {
+      this.$bvToast.toast(content, {
+        title: title,
+        variant: variant,
+        solid: true,
+        autoHideDelay: time,
+        toaster: locn,
+        appendToast: true
+      })
+    }
+  },
+  computed:{
+    currentRouteName() {
+      return this.$route.name;
+    }
   }
 }
 </script>

@@ -4,16 +4,21 @@ import axios from 'axios'
 
 Vue.use(Vuex)
 
+
+
 export default new Vuex.Store({
   state: {
     count: 0,
     username: '',
     validuser: false,
     stationName: '',
-    version:'3.10',
+    backendVersion:'--',
+    frontendVersion:'4.2',
     nodeBackendTestMode: false,
     vueFrontendTestMode:false,
     production:false,
+    socketConn:false,
+    backendConn:false,
     slideQueuePath: '',
     testLocalapiURL: 'http://localhost:2081',
     testapiURL: 'http://10.24.4.9:2082',
@@ -36,6 +41,15 @@ export default new Vuex.Store({
     },
     SetSlideQueuePath (state, strTemp) {
       state.slideQueuePath = strTemp
+    },
+    SetSocketConn (state, strTemp) {
+      state.socketConn = strTemp
+    },
+    SetbackendVersion (state, strTemp) {
+      state.backendVersion = strTemp
+    },
+    SetbackendConn (state, strTemp) {
+      state.backendConn = strTemp
     },
     ClearBlockCountTableItems (state) {
       state.blockCountTableItems = []
@@ -72,10 +86,10 @@ export default new Vuex.Store({
       return state.blockCountTableItems
     },
     GetValidUser: (state) => {
-      if (!state.nodeBackendTestMode){
-        return state.validuser
+      if (state.nodeBackendTestMode){
+        return true
       }
-      return true
+      return state.validuser
     },
     GetUsername: (state) => {
       return state.username
@@ -86,8 +100,17 @@ export default new Vuex.Store({
     GetvueFrontendTestMode: (state) => {
       return state.vueFrontendTestMode
     },
-    GetVersion: (state) => {
-      return state.version
+    GetBEVersion: (state) => {
+      return state.backendVersion
+    },
+    GetFEVersion: (state) => {
+      return state.frontendVersion
+    },
+    GetSocketStatus: (state) => {
+      return state.socketConn
+    },
+    GetBackendStatus: (state) => {
+      return state.backendConn
     },
     getApiUrl: (state) => {
       if (state.nodeBackendTestMode){return state.testLocalapiURL}

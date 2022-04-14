@@ -151,13 +151,6 @@
 import axios from 'axios'
 import store from '../store.js'
 
-
-// define the external API URL
-const API_URLWithSlideParameters = store.getters.getApiUrl + '/slidetracker/slideparameters?blockid='  //For Get Call
-// Helper function to help build urls to fetch slide details from blockid
-function buildUrl(blockID) {
-  return `${API_URLWithSlideParameters}${blockID}`
-}
 export default {
   name: 'slides', // component name
   props: {
@@ -198,28 +191,20 @@ export default {
           console.log(' within slide this method was fired by the socket server. eg: io.emit("customEmit", data)')
       },
       stream: function(data) {
-          console.log('socket on within slide')
-          console.log('within slide:',data)
-          //validate scan data
+          console.log("SOCKET STREAM SLIDE DIST")
           this.validateScanData(data)
       }
   },
   methods: {
     validateScanData(data){
       if (store.state.validuser) {
-        console.log('Slide Queue Path: ', data.slideQueuePath)
         store.commit('SetSlideQueuePath', data.slideQueuePath)
-        console.log('slide station name:', data.stationName)
         store.commit('SetStationName', data.stationName)
         //Depending on prefix, send to correct placeholder
-        console.log('slide: barcodescan', data.barcodeScanData)
-        console.log('slide: prefix', data.barcodeScanData.substring(0,4))
-
+        console.log("SLIDE PRINTER: "+this.$route.name)
         switch(data.barcodeScanData.substring(0,4)) {
           case 'HBLK':
-            //BlockScan Detected Pull Slides
             this.blockID = data.barcodeScanData
-            //this.pullSlidesViaPost();
             this.pullSlides();
             break
           case 'SBDG':
@@ -252,20 +237,22 @@ export default {
 
   printSlides()
   {
-    console.log('start print slides')
-    console.log(store.state.slideQueuePath)
 
-      axios.post(store.getters.getApiUrl + '/printslides', {
+      axios.post(store.getters.getApiUrl + '/printSlides', {
       action: 'PrintSlides',
       blockID: this.blockID,
       printRequestedBy: store.state.username,
       slideQueuePath: store.state.slideQueuePath,
-      printLocation: store.state.stationName
+      printLocation: store.state.stationName,
+      curRoute : this.currentRouteName
 
       })
       .then(function (response) {
-        console.log('slides printed')
-      console.log(response)
+      console.log('slides printed')
+      console.log(response.info)
+      if (response.files){
+        this.makeToast("Files waiting to be printed:\n "+response.files, "Slide Printer Issues", "danger",10000)
+      }
       })
       .catch(function (error) {
       console.log(error)
@@ -279,7 +266,7 @@ export default {
   },
 
     pullSlides() {
-           console.log('start pull slides');
+      console.log('start pull slides');
       //this.GetPartBlockCurrentAndTotals()
       let blockID = this.blockID
       if (!blockID) {
@@ -288,39 +275,28 @@ export default {
       }
       this.loading = true
 
-      //uses fetch as opposed to Axios
-      fetch(buildUrl(blockID))
-        //.then(response => response.json())
-        .then(function(response){
-          return response.json()
-        })
+
+      axios.post(store.getters.getApiUrl + '/pullSlides', {blockID: blockID})
         .then(data => {
           this.loading = false
           this.error_message = ''
-          if (data.errorcode) {
-            this.error_message = `Sorry, block with blockID '${blockID}' not found.`
-            console.log('error')
-            return
-          }
-
-          this.slides = data;
+          console.log(this.currentRouteName)
+          this.slides = data.data;
           this.formstatus = 'readytoprint';
           document.getElementById("InputBlockID").disabled = true;
           this.formstatuslabel = 'Print Slides';
-          console.log("Made it to this.slide=data");
-          console.log(data);
         }).catch((e) => {
           console.log(e)
         })
         this.GetPartBlockCurrentAndTotals()
     },
-    updateSlideToPrintValue(strSlideID, blChecked)
-    {
+    updateSlideToPrintValue(strSlideID, blChecked) {
             //Send api the following:  action: UpdateSlideToPrint slideid=? value=?
-      axios.post(store.getters.getApiUrl + '/updateslidetoprint', {
+      axios.post(store.getters.getApiUrl + '/updateSlideToPrint', {
         action: 'UpdateSlideToPrintValue',
         slideId: strSlideID,
-        toPrintStatus: blChecked
+        toPrintStatus: blChecked,
+        curRoute : this.currentRouteName
       })
       .then(function (response) {
         console.log(response);
@@ -332,8 +308,9 @@ export default {
     },
     GetPartBlockCurrentAndTotals() {
         console.log('start GetPartBlockCurrentAndTotals')
-              axios.post(store.getters.getApiUrl + '/getpartblockcurrentandtotals', {
-              blockID: this.blockID
+              axios.post(store.getters.getApiUrl + '/getPartBlockCurrentAndTotals', {
+              blockID: this.blockID,
+              curRoute : this.currentRouteName
             })
             .then(apidata => {
               this.loading = false;
@@ -343,7 +320,7 @@ export default {
                 console.log('error')
                 return
               }
-              console.log('apidata:', apidata);
+              //console.log('apidata:', apidata);
               let temp = {}
               temp = apidata.data
               console.log(temp)
@@ -382,6 +359,16 @@ export default {
       //Collapse additional options
       document.getElementById("btnManualBlockIDToggle").click()
     },
+    makeToast(content, title, variant = null,time=1500,locn='b-toaster-top-left') {
+      this.$bvToast.toast(content, {
+        title: title,
+        variant: variant,
+        solid: true,
+        autoHideDelay: time,
+        toaster: locn,
+        appendToast: true
+      })
+    }
   },
   computed:{
     inputButtonDisabled(){
@@ -402,6 +389,9 @@ export default {
       } else {
         return true
       }
+    },
+    currentRouteName() {
+      return this.$route.name;
     }
   }
 }
