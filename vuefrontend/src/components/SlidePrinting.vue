@@ -198,28 +198,20 @@ export default {
           console.log(' within slide this method was fired by the socket server. eg: io.emit("customEmit", data)')
       },
       stream: function(data) {
-          console.log('socket on within slide')
-          console.log('within slide:',data)
-          //validate scan data
+          console.log("SOCKET STREAM SLIDE DIST")
           this.validateScanData(data)
       }
   },
   methods: {
     validateScanData(data){
       if (store.state.validuser) {
-        console.log('Slide Queue Path: ', data.slideQueuePath)
         store.commit('SetSlideQueuePath', data.slideQueuePath)
-        console.log('slide station name:', data.stationName)
         store.commit('SetStationName', data.stationName)
         //Depending on prefix, send to correct placeholder
-        console.log('slide: barcodescan', data.barcodeScanData)
-        console.log('slide: prefix', data.barcodeScanData.substring(0,4))
-
+        console.log("SLIDE PRINTER: "+this.$route.name)
         switch(data.barcodeScanData.substring(0,4)) {
           case 'HBLK':
-            //BlockScan Detected Pull Slides
             this.blockID = data.barcodeScanData
-            //this.pullSlidesViaPost();
             this.pullSlides();
             break
           case 'SBDG':
@@ -252,20 +244,22 @@ export default {
 
   printSlides()
   {
-    console.log('start print slides')
-    console.log(store.state.slideQueuePath)
 
       axios.post(store.getters.getApiUrl + '/printslides', {
       action: 'PrintSlides',
       blockID: this.blockID,
       printRequestedBy: store.state.username,
       slideQueuePath: store.state.slideQueuePath,
-      printLocation: store.state.stationName
+      printLocation: store.state.stationName,
+      curRoute : this.currentRouteName
 
       })
       .then(function (response) {
-        console.log('slides printed')
-      console.log(response)
+      console.log('slides printed')
+      console.log(response.info)
+      if (response.files){
+        this.makeToast("Files waiting to be printed:\n "+response.files, "Slide Printer Issues", "danger",10000)
+      }
       })
       .catch(function (error) {
       console.log(error)
@@ -302,25 +296,23 @@ export default {
             console.log('error')
             return
           }
-
+          console.log(this.currentRouteName)
           this.slides = data;
           this.formstatus = 'readytoprint';
           document.getElementById("InputBlockID").disabled = true;
           this.formstatuslabel = 'Print Slides';
-          console.log("Made it to this.slide=data");
-          console.log(data);
         }).catch((e) => {
           console.log(e)
         })
         this.GetPartBlockCurrentAndTotals()
     },
-    updateSlideToPrintValue(strSlideID, blChecked)
-    {
+    updateSlideToPrintValue(strSlideID, blChecked) {
             //Send api the following:  action: UpdateSlideToPrint slideid=? value=?
       axios.post(store.getters.getApiUrl + '/updateslidetoprint', {
         action: 'UpdateSlideToPrintValue',
         slideId: strSlideID,
-        toPrintStatus: blChecked
+        toPrintStatus: blChecked,
+        curRoute : this.currentRouteName
       })
       .then(function (response) {
         console.log(response);
@@ -333,7 +325,8 @@ export default {
     GetPartBlockCurrentAndTotals() {
         console.log('start GetPartBlockCurrentAndTotals')
               axios.post(store.getters.getApiUrl + '/getpartblockcurrentandtotals', {
-              blockID: this.blockID
+              blockID: this.blockID,
+              curRoute : this.currentRouteName
             })
             .then(apidata => {
               this.loading = false;
@@ -382,6 +375,16 @@ export default {
       //Collapse additional options
       document.getElementById("btnManualBlockIDToggle").click()
     },
+    makeToast(content, title, variant = null,time=1500,locn='b-toaster-top-left') {
+      this.$bvToast.toast(content, {
+        title: title,
+        variant: variant,
+        solid: true,
+        autoHideDelay: time,
+        toaster: locn,
+        appendToast: true
+      })
+    }
   },
   computed:{
     inputButtonDisabled(){
@@ -402,6 +405,9 @@ export default {
       } else {
         return true
       }
+    },
+    currentRouteName() {
+      return this.$route.name;
     }
   }
 }

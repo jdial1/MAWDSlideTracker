@@ -1,20 +1,25 @@
+<!-- ===========================================================================================
+
+    File: CaseInquiry.vue
+
+    Authors: Justin Dial
+
+    Description: This is the component for handling Case Querying
+============================================================================================ -->
+
 <template>
-  <div class="col d-flex justify-content-center" v-if="this.$store.getters.GetValidUser" >
-      <div>
-        <div><!--width is set by this div -->
-          <h2 class="display-2">Case Inquiry</h2>
-          <div class="input-group">
-            <b-input id="InputCaseNo"  v-model="strCaseNo" placeholder="Input Case No: ie D19-99999" @keyup.enter="EnterKeyTrigger" />
-            <b-button type="submit" variant="primary sm" @click="LoadTableData()" ref="btnLoadTableData">OK</b-button>
-          </div>
-          <br>
-          <b-table style="opacity: .95;background: grey" striped hover :items="queryData" :fields="arTblFields"></b-table>
-        </div>
-    </div>
-      <br>
+  <div class="justify-content-center container"  >
+    <h1>Case Inquiry</h1>
+
+    <b-checkbox v-model="exactMatch">Exact Match</b-checkbox>
+    <b-input-group style="max-width: 43%;" class="mx-auto" >
+      <b-input id="InputCaseNo"  v-model="strCaseNo" placeholder="Input Case No: ie D19-99999" @keyup.enter="EnterKeyTrigger" />
+      <b-button type="submit" variant="primary sm" @click="LoadTableData()" ref="btnLoadTableData">OK</b-button>
+    </b-input-group>
+    <br>
+    <b-table style="opacity: .90;font-size: smaller;" striped hover dark small borderless :items="queryData" :fields="fieldVals"></b-table>
     </div>
 </template>
-
 <script>
 
 import axios from 'axios'
@@ -25,7 +30,8 @@ export default {
   data() {
     return {
       strCaseNo: 'D19-99999',
-      arTblFields: [],
+      fieldVals: [],
+      exactMatch: true,
       queryData: []
     }
   },
@@ -44,17 +50,29 @@ export default {
   },
   methods: {
     LoadTableData() {
-      let strFullAPICall = store.getters.getApiUrl + '/caseinquiry'
+      let strFullAPICall = store.getters.getApiUrl + '/GetCaseInquery'
+      var accId = ''
+      if(!this.exactMatch){accId="%"+this.strCaseNo+"%"}
+      else{accId=this.strCaseNo}
       axios.post(strFullAPICall, {
-        ACCESSIONID: this.strCaseNo,
-        apitoken: store.state.apitoken
+        ACCESSIONID: accId,
+        apitoken: store.state.apitoken,
+        curRoute : this.currentRouteName
       })
           .then(apidata => {
             let temp = {}
             temp = apidata.data
             console.log(JSON.stringify(apidata))
-            this.queryData = apidata.data
-            this.arTblFields = Object.keys(this.queryData[0])
+            for (let e of temp) {
+              if(e['Order Time'])         e['Order Time'] =         this.dateFormatter(e['Order Time']);
+              if(e['Embedded Time'])      e['Embedded Time'] =      this.dateFormatter(e['Embedded Time']);
+              if(e['Slide Printed Time']) e['Slide Printed Time'] = this.dateFormatter(e['Slide Printed Time']);
+              if(e['StainOrderDate'])     e['StainOrderDate'] =     this.dateFormatter(e['StainOrderDate']);
+              if(e['DTReadyForCourier'])  e['DTReadyForCourier'] =  this.dateFormatter(e['DTReadyForCourier']);
+              if(e['DateTimeEngraved'])   e['DateTimeEngraved'] =   this.dateFormatter(e['DateTimeEngraved']);
+            }
+            this.queryData = temp
+            this.fieldVals = Object.keys(this.queryData[0])
           }).catch((e) => {
         console.log(e)
       })
@@ -63,11 +81,29 @@ export default {
             console.log(error)
           })
     },
+    dateFormatter(str){
+      return str.replace('T', ' ').replace('Z', ' ').split('.')[0].substring(2,99)
+    },
     EnterKeyTrigger() {
       this.$refs.btnLoadTableData.click()
+    },
+    makeToast(content, title, variant = null,time=1500,locn='b-toaster-top-left') {
+      this.$bvToast.toast(content, {
+        title: title,
+        variant: variant,
+        solid: true,
+        autoHideDelay: time,
+        toaster: locn,
+        appendToast: true
+      })
     }
   },
   mounted() {
+  },
+  computed:{
+    currentRouteName() {
+      return this.$route.name;
+    }
   }
 }
 </script>
