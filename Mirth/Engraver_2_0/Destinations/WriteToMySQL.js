@@ -1,10 +1,10 @@
-var dbConnMYSQL;
-var strSpecimenID = "Empty";
-var strSQL;
-var result;
-var strBlockNotes;
-var strDateOfService;
-var strDateTime = DateUtil.getCurrentDate('yyyyMMddHHmmss');
+let dbConnMYSQL;
+let strSpecimenID = "Empty";
+let strSQL;
+let result;
+let strBlockNotes;
+let strDateOfService;
+let strDateTime = DateUtil.getCurrentDate('yyyyMMddHHmmss');
 const strMYSQLUserName = configurationMap.get('MYSQLUserName');
 const strMYSQLPassword = configurationMap.get('MYSQLPassword');
 const strMYSQLJDBCConnection = configurationMap.get('MYSQLJDBCConnection');
@@ -14,12 +14,12 @@ const strMYSQLJDBCDriver = configurationMap.get('MYSQLJDBCDriver');
 strSpecimenID = channelMap.get("strSpecimenID");
 
 //Sanitize variables
-var strBlockComment = SanitizeVariableAddLeadingAndTrailingApostrophies($('strBlockComment'))
-var strPartComment = SanitizeVariableAddLeadingAndTrailingApostrophies($('strPartComment'))
-var strPatientName = SanitizeVariableAddLeadingAndTrailingApostrophies($('strPatientName'))
-var strPartDesc = SanitizeVariableAddLeadingAndTrailingApostrophies($('strPartDesc'))
-var strPartType = SanitizeVariableAddLeadingAndTrailingApostrophies($('strPartType'))
-var strDateTaken = SanitizeVariableAddLeadingAndTrailingApostrophies($('strDateTaken'))
+let strBlockComment = SanitizeVariableAddLeadingAndTrailingApostrophies($('strBlockComment'))
+let strPartComment = SanitizeVariableAddLeadingAndTrailingApostrophies($('strPartComment'))
+let strPatientName = SanitizeVariableAddLeadingAndTrailingApostrophies($('strPatientName'))
+let strPartDesc = SanitizeVariableAddLeadingAndTrailingApostrophies($('strPartDesc'))
+let strPartType = SanitizeVariableAddLeadingAndTrailingApostrophies($('strPartType'))
+let strDateTaken = SanitizeVariableAddLeadingAndTrailingApostrophies($('strDateTaken'))
 //Date Of Service Handle Null
 
 try {

@@ -1,5 +1,5 @@
-var mysql = require('mysql')
-var mysqlConfig = require('../mysqlConfig')
+let mysql = require('mysql')
+let mysqlConfig = require('../mysqlConfig')
 
 module.exports = {
   reports: reports
@@ -13,7 +13,7 @@ function reports (request, response, callback) {
   switch (strReportName) {
     case 'blockcount':
 
-      strSQL = `/* qryTotalBlockCountWSort
+      strSQL = `/* qryTotalBlockCountWSort */
       Total Block Count: Previous Busines Day Plus Hours set from tbleRunTime 'PreviousDayCutoff*/
       SELECT Count(qrySubBlockCountWLocation.subBlockID) AS BlockCount, SlideDistributionLocation
       FROM (SELECT subTblSlides.BlockID AS subBlockID, subTblSlideDistribution.SlideDistributionLocation
@@ -47,8 +47,8 @@ function reports (request, response, callback) {
       break
   }
 
-  if (strSQL !== null) {
-    var con = mysql.createConnection(mysqlConfig)
+  if (strSQL) {
+    let con = mysql.createConnection(mysqlConfig)
     con.query(strSQL, function (err, result) {
       if (err) {
         response.send(err)

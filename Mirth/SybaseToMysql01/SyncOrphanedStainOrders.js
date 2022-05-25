@@ -2,25 +2,25 @@
 //  Not matched because block_inst gets updated when new block is created.
 
 
-var dbConnMYSQL;
-var dbConnCoPath;
-var strSpecimenID = "empty";
-var strSQL;
-var strSQL1;
-var strSQL2;
-var orphanStainResult;
-var lastInsertIDResult;
-var mySQLresult;
-var intResultSize;
-var intSuccessfullInserts = 0;
-var strDateTime = DateUtil.getCurrentDate('yyyyMMddHHmmss');
-var strLastSyncDateTime = $('strLastSyncDateTime'); //Last DateTime Sync was ran
-//var strLastSyncDateTime = '2019-04-15 11:34:08'; //Last DateTime Sync was ran
-var strMostRecentStatusDate; //The most recent status date of stain orders that were uploaded.  If some of the database calls fail, this is where to pick back up.
-var strDBInsertStatus;
-var strTimeToComplete;
-var strSyncStatus;
-var intLastSyncID;
+let dbConnMYSQL;
+let dbConnCoPath;
+let strSpecimenID = "empty";
+let strSQL;
+let strSQL1;
+let strSQL2;
+let orphanStainResult;
+let lastInsertIDResult;
+let mySQLresult;
+let intResultSize;
+let intSuccessfullInserts = 0;
+let strDateTime = DateUtil.getCurrentDate('yyyyMMddHHmmss');
+let strLastSyncDateTime = $('strLastSyncDateTime'); //Last DateTime Sync was ran
+//let strLastSyncDateTime = '2019-04-15 11:34:08'; //Last DateTime Sync was ran
+let strMostRecentStatusDate; //The most recent status date of stain orders that were uploaded.  If some of the database calls fail, this is where to pick back up.
+let strDBInsertStatus;
+let strTimeToComplete;
+let strSyncStatus;
+let intLastSyncID;
 const strMYSQLUserName = configurationMap.get('MYSQLUserName');
 const strMYSQLPassword = configurationMap.get('MYSQLPassword');
 const strMYSQLJDBCConnection = configurationMap.get('MYSQLJDBCConnection');
@@ -29,7 +29,7 @@ const strSybaseUserName = configurationMap.get('SybaseUserName');
 const strSybasePassword = configurationMap.get('SybasePassword');
 const strSybaseJDBCConnection = configurationMap.get('SybaseJDBCConnection');
 const strSybaseJDBCDriver = configurationMap.get('SybaseJDBCDriver');
-var strSyncID = $('intLastSyncID');
+let strSyncID = $('intLastSyncID');
 
 
 		//If no syncid, set as 0.
@@ -76,8 +76,8 @@ try {
     dbConnCoPath = DatabaseConnectionFactory.createDatabaseConnection(strSybaseJDBCDriver, strSybaseJDBCConnection, strSybaseUserName, strSybasePassword)
 
     if (intResultSize > 0) {
-      //for (var i = 0; i < intResultSize; i++) {
-      for (var i = 0; i < intResultSize; i++) {
+      //for (let i = 0; i < intResultSize; i++) {
+      for (let i = 0; i < intResultSize; i++) {
         //For each stin that is not matched get Block Desig Label
         orphanStainResult.next();
 
@@ -86,10 +86,10 @@ try {
         try {
 
           //Keys off of status updates. Need to cascade status updates to slides
-          var strSQL2 = ""
-          var strSpecId = orphanStainResult.getString('specimen_id')
-          var strPartInt = orphanStainResult.getString('part_inst')
-          var strBlockInt = orphanStainResult.getString('block_inst')
+          let strSQL2 = ""
+          let strSpecId = orphanStainResult.getString('specimen_id')
+          let strPartInt = orphanStainResult.getString('part_inst')
+          let strBlockInt = orphanStainResult.getString('block_inst')
 
           strSQL2 = "select blkdesig_label \
 										from p_block \
@@ -98,16 +98,16 @@ try {
 										block_inst = '" + strBlockInt + "'"
 
           //What if block inst = 0??
-          var blockDesLabelResult = dbConnCoPath.executeCachedQuery(strSQL2);
+          let blockDesLabelResult = dbConnCoPath.executeCachedQuery(strSQL2);
 
           //Update copath_p_stainprocess with update block BlockDesignator
           //Only update if
           if (blockDesLabelResult.size() > 0) {
             //Load first restult
             blockDesLabelResult.next();
-            var strBlkDesigLabel = blockDesLabelResult.getString('blkdesig_label')
+            let strBlkDesigLabel = blockDesLabelResult.getString('blkdesig_label')
 
-            var strNewBlockDesigSQL = "UPDATE `OPENLIS`.`copath_p_stainprocess` \
+            let strNewBlockDesigSQL = "UPDATE `OPENLIS`.`copath_p_stainprocess` \
 							SET \
 						`_blockdesig_label` ='" + strBlkDesigLabel + "' \
 						WHERE `specimen_id` = '" + orphanStainResult.getString('specimen_id') + "' AND \

@@ -1,9 +1,9 @@
 
-var mysql = require('mysql')
-var mysqlConfig = require('../mysqlConfig')
+let mysql = require('mysql')
+let mysqlConfig = require('../mysqlConfig')
 const url = require('url')
-var dateFormat = require('dateformat')
-var fs = require('fs')
+let dateFormat = require('dateformat')
+let fs = require('fs')
 
 module.exports = {
   printSlides: printSlides,
@@ -17,29 +17,38 @@ module.exports = {
   SetBlockData: SetBlockData,
   GetStatusData: GetStatusData,
   GetCassEngLoc: GetCassEngLoc,
-  caseinquiry: GetCaseInquery
+  GetCaseInquery: GetCaseInquery,
+  SetCassEngLoc: SetCassEngLoc
 }
 
-var lastQueryTimes=[];
+let lastQueryTimes=[];
 function CheckLastQueryCache(queryName,waitTime=15){
   if (lastQueryTimes[queryName]){
-    var now = Date.now()
-    var lastTime = lastQueryTimes[queryName].date
+    let now = new Date().toLocaleString("en-US", {timeZone: "America/Chicago"})
+    let lastTime = lastQueryTimes[queryName].date
+    now = parseInt((new Date(now).getTime() / 1000).toFixed(0))
+    lastTime = parseInt((new Date(lastTime).getTime() / 1000).toFixed(0))
+    console.log(now)
+    console.log(lastTime)
+    console.log(Math.abs(lastTime  - now) )
     if (Math.abs(lastTime - now) < 60*1000*waitTime){
       console.warn(queryName+" Cached Data")
       lastQueryTimes[queryName].data[0].timestamp = lastTime
+      console.log(lastQueryTimes[queryName].data)
       return lastQueryTimes[queryName].data
     }
     console.warn(queryName+" Expired Data")
   }
   console.warn(queryName+" DB Data")
 }
+
 function  db_query(query) {
   return new Promise((resolve, reject) => {
-    var now = Date.now()
-    console.log("SQL QUERY: "+query)
-    var con = mysql.createConnection(mysqlConfig)
-    con.query(query, function (err, result) {
+    let now = Date.now()
+    let sql_query = '/* Slide Tracker API*/ '+query
+    console.log("SQL QUERY: "+sql_query)
+    let con = mysql.createConnection(mysqlConfig)
+    con.query(sql_query, function (err, result) {
       if (err) {reject(err);}
       resolve(result)
       con.end()
@@ -49,14 +58,14 @@ function  db_query(query) {
 
 async function printSlides (request, response) {
 
-  var strDate = new Date().toLocaleString()
-  var currentFiles=[]
-  var strBlockID = request.body.blockID
-  var strPrintRequestBy = request.body.printRequestedBy
-  var strSlideQueuePath = request.body.slideQueuePath
+  let strDate = new Date().toLocaleString("en-US", {timeZone: "America/Chicago"})
+  let currentFiles=[]
+  let strBlockID = request.body.blockID
+  let strPrintRequestBy = request.body.printRequestedBy
+  let strSlideQueuePath = request.body.slideQueuePath
   if (strSlideQueuePath){if (strSlideQueuePath.slice(-1) !== '/') {strSlideQueuePath = strSlideQueuePath+'/'}}
-  var strLocationID = request.body.printLocation || 'unknown'
-  var strOrderPathInitials = ''
+  let strLocationID = request.body.printLocation || 'unknown'
+  let strOrderPathInitials = ''
   var strSQL = `
            SELECT tblSlides.StainOrderDate,
            tblSlides.SlideID,
@@ -80,18 +89,18 @@ async function printSlides (request, response) {
                            and copath_p_stainprocess.wkdept_id = copath_c_d_department.id)
             WHERE (((tblSlides.BlockID) = '${strBlockID}') AND tblSlides.ToBePrinted = TRUE);
             `
-      var result = await db_query(strSQL).then((res)=> {return res}).catch((rej)=>{throw rej})
-      var intRowCounter = 0
-      Object.keys(result).forEach(function (key) {
+      var result = await db_query(strSQL).then((res)=> res).catch((e)=>(console.error(e)))
+      let intRowCounter = 0
+      for (const key of Object.keys(result)) {
         intRowCounter=intRowCounter+1
-        var row = result[key]
+        let row = result[key]
         row.StainOrderDate = dateFormat(row.StainOrderDate, 'shortDate')
 
         row.OrderPathInitials == null || row.OrderPathInitials === 'null'
               ? strOrderPathInitials = ''
               : strOrderPathInitials = row.OrderPathInitials.substring(0, 3)
 
-        var fileDate = new Date().toLocaleDateString().replace('-', '').replace('/', '')
+        let fileDate = new Date().toLocaleDateString().replace('-', '').replace('/', '')
 
 
         fs.readdirSync(strSlideQueuePath).forEach(file => {
@@ -100,7 +109,7 @@ async function printSlides (request, response) {
 
         // WriteSlideData
         // SlideID|AccessionID|SlideInst|PartDesignator|BlockDesignator|StainOrderDate|OrderingPath|Patient|SiteLabel|SlideDistributionKeyword|StainLabel
-        var strFileWriteData = [
+        let strFileWriteData = [
               row.SlideID,
               row.AccessionID,
               row.SlideInst,
@@ -113,7 +122,7 @@ async function printSlides (request, response) {
               row.SlideDistributionKeyword,
               row.StainLabel
             ].join('|');
-        var strSlideFlatFileFullName = strSlideQueuePath + row.SlideID + '_' + fileDate + '.txt'
+        let strSlideFlatFileFullName = strSlideQueuePath + row.SlideID + '_' + fileDate + '.txt'
         fs.writeFileSync(strSlideFlatFileFullName, strFileWriteData,
             function (err) {
               if (err) throw err
@@ -144,10 +153,10 @@ async function printSlides (request, response) {
               WHERE
                   SlideID =   row.SlideID ;
         `
-        db_query(strSQL).then((res)=> {return res}).catch((rej)=>{throw rej})
-      })
+        await db_query(strSQL).catch( (e)=>(console.error(e)))
+      }
 
-      let strTempSQL = `
+  let strTempSQL = `
         /*qryUpdateBlockSlidesPrinted*/
         UPDATE OPENLIS.tblBlock
         SET
@@ -176,14 +185,14 @@ async function printSlides (request, response) {
             ${intRowCounter}
           );
         `
-  var result = db_query(strSQL).then((res)=> {return res}).catch((rej)=>{throw rej})
+  await db_query(strSQL).catch((e)=>(console.error(e)))
   response.send({info:'Slides have been sent to Slide Printer',files:currentFiles})
 }
 async function GetCaseInquery (request, response) {
-
-  var strStrAccessionID = request.body.ACCESSIONID
+  console.log(request.body)
+  let strStrAccessionID = request.body.ACCESSIONID
   var strSQL = `
-/*qryCaseInquiry*/
+      /*qryCaseInquiry*/
       SELECT tblSlides.SlideID, 
               tblSlides.StainLabel, 
               tblSlideDistribution.Status, 
@@ -200,7 +209,6 @@ async function GetCaseInquery (request, response) {
               tblSlideDistribution.SlideDistributionLocation, 
               tblSlideDistribution.DTReadyForCourier, 
               tblSlideDistribution.SlideTray
-
       FROM   (tblSlides 
               LEFT JOIN tblSlideDistribution 
                       ON tblSlides.SlideDistributionID = 
@@ -211,43 +219,45 @@ async function GetCaseInquery (request, response) {
                     ON tblSlides.BlockID = tblActionTracking.IDOfMaterial
                     and tblActionTracking.Action='Embedded'
       WHERE  (( ( tblSlides.AccessionID ) LIKE "${strStrAccessionID}")) order by DTPrinted DESC;`
-  await db_query(strSQL).then((res)=> {response.json(res)}).catch((rej)=>{throw rej})
+  if (request.body.materialAudit){
+    strSQL = `SELECT Action,IDOfMaterial ,User,Station,ActionDateTime from tblActionTracking tat  where tat.IDOfMaterial like '${strStrAccessionID}' order by ActionDateTime desc;`
+  }
+  await db_query(strSQL).then((res)=> {response.json(res)}).catch((e)=>(console.error(e)))
 }
 async function GetStatusData(request, response) {
-  var result = CheckLastQueryCache('GetStatusData')
-  if (result) {
-    response.json(result)
-  } else {
+  let old_data = CheckLastQueryCache('GetStatusData')
+  if (old_data) {
+    lastQueryTimes['GetStatusData'] = {date: new Date().toLocaleString("en-US", {timeZone: "America/Chicago"}), data: old_data}
+    old_data[0].timestamp = new Date().toLocaleString("en-US", {timeZone: "America/Chicago"})
+    response.json(old_data)}
+
+  else {
     var strSQL = `    
-      select count(*) as 'count','pre Embedded'
-      from tblBlock
-      where 1 not in (select IDOfMaterial from tblActionTracking)
-      and BlockStatus is null
-      and PartDescription not like 'B%' -- bone marrow
-      and DateTimeEngraved > now() - interval 1 day
-      and TimesEngraved>0
-      union all
-      select count(action),action
-      from tblActionTracking
-      where ActionDateTime > now() - interval 1 day
-      and action='Embedded'
-      group by action
-      union all
-      select count(action),action
-      from tblActionTracking
-      where ActionDateTime > now() - interval 1 day
-      and action='SlidesPrintedOffBlock'
-      group by action
-      union all
-      SELECT count(distinct BlockID),'distributed'
-      FROM tblSlides
-      INNER JOIN   tblSlideDistribution on tblSlides.SlideDistributionID = tblSlideDistribution.SlideDistributionID
-      WHERE tblSlideDistribution.DTReadyForCourier >date_format(curdate() - if(weekday(curdate()) >= 5, if(weekday(curdate()) = 6, 2, 1), 1),'%Y-%m-%d 18:00:00');
+        select t.count,t.PreEmbedded as 'Action'
+        from (
+        select count(*) as 'count','PreEmbedded'
+        from tblBlock
+        where 1 not in (select IDOfMaterial from tblActionTracking)
+        and BlockStatus is null
+        and PartDescription not like 'B%' -- bone marrow
+        and DateTimeEngraved > date_format(curdate() - if(weekday(curdate()) >= 5, if(weekday(curdate()) = 6, 2, 1), 1),'%Y-%m-%d 18:00:00')
+        and TimesEngraved>0
+        union all
+        select count(action),action
+        from tblActionTracking
+        where ActionDateTime  > date_format(curdate() - if(weekday(curdate()) >= 5, if(weekday(curdate()) = 6, 2, 1), 1),'%Y-%m-%d 18:00:00')
+        group by action
+        union all
+        SELECT count(distinct BlockID),'distributed'
+        FROM tblSlides
+        INNER JOIN   tblSlideDistribution on tblSlides.SlideDistributionID = tblSlideDistribution.SlideDistributionID
+        WHERE tblSlideDistribution.DTReadyForCourier > date_format(curdate() - if(weekday(curdate()) >= 5, if(weekday(curdate()) = 6, 2, 1), 1),'%Y-%m-%d 18:00:00')
+        ) as t
     `
     await db_query(strSQL)
         .then(function(res) {
-          lastQueryTimes['GetStatusData'] = {date: Date.now(), data: res}
-          res[0].timestamp = Date.now()
+          lastQueryTimes['GetStatusData'] = {date: new Date().toLocaleString("en-US", {timeZone: "America/Chicago"}), data: res}
+          res[0].timestamp = new Date().toLocaleString("en-US", {timeZone: "America/Chicago"})
           response.json(res)
         })
         .catch((rej)=>{
@@ -257,96 +267,73 @@ async function GetStatusData(request, response) {
 }
 async function getUserInfo (request, response) {
 
-  var strUserID = request.body.userid
-  var strSQL = `SELECT * FROM OPENLIS.tblUsers
-              WHERE id = '${strUserID}';`
-  var result = await db_query(strSQL)
-  if ('error' in result) {throw result['error']}
-  response.json(result)
+  let strUserID = request.body.userid
+  var strSQL = `SELECT * FROM tblUsers WHERE id = '${strUserID}';`
+  await db_query(strSQL).then((res)=> {response.json(res)}).catch((e)=>(console.error(e)))
+
 }
 async function GetBlockData (request, response) {
 
-  var blockID = request.body.blockID
-  var strSQL = `SELECT * FROM OPENLIS.tblBlock WHERE \`BlockID\` = '` + blockID + `';`
-  var result = await db_query(strSQL)
-  if ('error' in result) {throw result['error']}
-  else{response.json(result)}
+  let blockID = request.body.blockID
+  var strSQL = `SELECT * FROM tblBlock WHERE BlockID = '${blockID}'`
+  await db_query(strSQL).then((res)=> {response.json(res)}).catch((e)=>(console.error(e)))
+
 }
 async function SetBlockData (request, response) {
 
-  var blockData            = request.body.blockData.data[0]
-  let ScanLocation         = request.body.scanlocation
-  let userid               = request.body.userid
-  let curRoute             = request.body.curRoute
-  let TimesScannedAtEmbedding   = blockData.TimesScannedAtEmbedding
-  let BlockID				       = blockData.BlockID
-  if (!TimesScannedAtEmbedding){TimesScannedAtEmbedding=1}
-  else{TimesScannedAtEmbedding = TimesScannedAtEmbedding+1}
+  let blockData            = request.body.blockData.data[0]
+  let {scanlocation:ScanLocation,userid,curRoute} = request.body;
+  let TimesScanned         = (!blockData.TimesScannedAtEmbedding) ? 1: blockData.TimesScannedAtEmbedding+1
+  let BlockID			   = blockData.BlockID
+
 
   var strSQL = `
-  UPDATE OPENLIS.tblBlock
-      SET
-      BlockStatus       = 'Embedded',
-      embedded          = 1,
-      embeddedDT        = NOW(),
-      TimesScannedAtEmbedding = ${TimesScannedAtEmbedding}
-    WHERE BlockID = '${BlockID}';
+      UPDATE tblBlock
+      SET BlockStatus = 'Embedded',embedded   = 1,embeddedDT  = NOW(),
+      TimesScannedAtEmbedding = ${TimesScanned}
+      WHERE BlockID = '${BlockID}';
   `
-  await db_query(strSQL)
-  if ('error' in result) {throw result['error']}
+  await db_query(strSQL).catch((e)=>(console.error(e)))
 
   var strSQL = `
-    INSERT INTO OPENLIS.tblActionTracking
-      (Action,
-      IDOfMaterial,
-      User,
-      Station,
-      ActionDateTime)
-   VALUES
-      ('Embedded',
-      '${BlockID}',
-      '${userid}',
-      '${ScanLocation}',
-      NOW());
+    INSERT INTO tblActionTracking
+          (Action,IDOfMaterial,User,Station,ActionDateTime)
+          VALUES('Embedded','${BlockID}','${userid}','${ScanLocation}',NOW());
     `
-  await db_query(strSQL)
-  if ('error' in result) {throw result['error']}
-  else{response.send('OK')}
+  await db_query(strSQL).then(response.send('OK')).catch((e)=>(console.error(e)))
 }
 async function GetCassEngLoc (request, response) {
-
-  var strSQL = `
-select old_value,new_value,right_left_value
-from engraver_lookup;
-`
-
-  await db_query(strSQL).then((res) => {
-    response.json(res)
-  }).catch((rej) => {
-    throw rej
-  })
+  var strSQL = `select old_value,new_value,right_left_value from engraver_lookup;`
+  await db_query(strSQL).then((res)=>response.json(res)).catch((e)=>(console.error(e)))
 }
-async function getPartBlockCurrentAndTotals (request, response) {
 
-  var strBlockID = request.body.blockID
-  var strAccessionId = null
-  var strCurrentBlock = null
-  var strCurrentPart = null
-  var strNoPrefix = strBlockID.substring(4)
-  var strTemp = strNoPrefix.split('_')
-  strAccessionId = strTemp[0]
-  strCurrentPart = strTemp[1]
-  strCurrentBlock = strTemp[2]
+async function SetCassEngLoc (request, response) {
+  request['body']['data'].forEach((el)=>{
+    if ('new_value' in el && 'right_left_value' in el && 'old_value' in el ){
+      strSQL = `update engraver_lookup set new_value = "${el.new_value}",right_left_value = ${el.right_left_value} where old_value = "${el.old_value}";`;
+      db_query(strSQL).catch((e)=>(console.error(e)))
+    }
+  })
+  response.send({info:'Success'})
+}
+
+async function getPartBlockCurrentAndTotals (request, response) {
+  let strBlockID = request.body.blockID
+  const {strAccessionId,strCurrentPart,strCurrentBlock} = strBlockID.substring(4).split('_')
   var strSQLTotalBlocks = `
-SELECT BlockDesignator FROM OPENLIS.tblBlock where SpecNumFormatted = '${strAccessionId}' AND PartDesignator = '${strCurrentPart}' order by ABS(BlockDesignator) desc limit 1;`
+        SELECT BlockDesignator FROM OPENLIS.tblBlock 
+        where SpecNumFormatted = '${strAccessionId}' 
+        AND PartDesignator = '${strCurrentPart}'
+        order by ABS(BlockDesignator) desc limit 1;`
   var strSQLTotalParts = `
-SELECT PartDesignator FROM OPENLIS.tblBlock where SpecNumFormatted = '${strAccessionId}' order by PartDesignator desc LIMIT 1;`
+        SELECT PartDesignator FROM OPENLIS.tblBlock 
+        where SpecNumFormatted = '${strAccessionId}' 
+        order by PartDesignator desc LIMIT 1;`
   var strSQL = strSQLTotalBlocks + strSQLTotalParts
-  var result = await db_query(strSQL)
-  if ('error' in result) {throw result['error']}
-  var strTotalBlocks = result[0][0].BlockDesignator
-  var strTotalParts = result[1][0].PartDesignator
-  var jsonResult = {
+  var result = await db_query(strSQL).then((res)=>res).catch((e)=>(console.error(e)))
+  let strTotalBlocks = result[0][0].BlockDesignator
+  let strTotalParts = result[1][0].PartDesignator
+  let jsonResult = {
     currentblock: strCurrentBlock,
     currentpart: strCurrentPart,
     totalblocks: strTotalBlocks,
@@ -355,43 +342,26 @@ SELECT PartDesignator FROM OPENLIS.tblBlock where SpecNumFormatted = '${strAcces
   response.json(jsonResult)
 }
 async function updateSlideToPrint (request, response) {
+  const {slideId:strSlideID, toPrintStatus:blToPrintStatus} = request.body
 
-  var strResponse = ''
-  var strAction = request.body.action
-  var strSlideID = request.body.slideId
-  var blToPrintStatus = request.body.toPrintStatus
+  var strSQL = `
+            update tblSlides
+            set ToBePrinted =  '${blToPrintStatus}'
+            where SlideID =  ${strSlideID}
+            `
 
-  var strSQL = `UPDATE \`OPENLIS\`.\`tblSlides\`
-            SET
-              \`ToBePrinted\` = ` + blToPrintStatus +
-            ` WHERE \`SlideID\` = '` + strSlideID + `';`
-
-  var result = await db_query(strSQL)
-  if ('error' in result) {throw result['error']}
-  response.send('OK')
+  await db_query(strSQL).then(response.send('OK')).catch((e)=>(console.error(e)))
 }
 async function pullSlides (request, response) {
-
-  var strBlockID = request.body.blockID
+  let strBlockID = request.body.blockID
   var strSQL = `
-SELECT tblSlides.AccessionID,
-  tblSlides.PartDesignator,
-  tblSlides.BlockDesignator,
-  tblSlides.Patient,
-  tblSlides.StainLabel,
-  tblSlides.ToBePrinted,
-  tblSlides.SlideInst,
-  tblSlides.slidecount,
-  tblSlides.StainOrderDate,
-  tblSlides.SiteLabel,
-  tblSlides.SlideID,
-  tblSlides.Status
-FROM   tblSlides
-WHERE  (( ( tblSlides.BlockID ) = '${strBlockID}' )); `
-  var result = await db_query(strSQL)
+        SELECT ts.AccessionID,ts.PartDesignator,ts.BlockDesignator,ts.Patient,ts.StainLabel,
+        ts.ToBePrinted,ts.SlideInst,ts.slidecount,ts.StainOrderDate,ts.SiteLabel,ts.SlideID,ts.Status FROM   tblSlides ts
+        WHERE  (( ( tblSlides.BlockID ) = '${strBlockID}' )); `
+  var result = await db_query(strSQL).then(res => res).catch((e)=>(console.error(e)))
   if ('error' in result) {throw result['error']}
   Object.keys(result).forEach(function (key) {
-    var row = result[key]
+    let row = result[key]
     row.StainOrderDate = dateFormat(row.StainOrderDate, 'shortDate')
     if (row.OrderingPath === 'null') {
       row.OrderingPath = ''
@@ -399,94 +369,94 @@ WHERE  (( ( tblSlides.BlockID ) = '${strBlockID}' )); `
   })
   response.json(result)
 }
+
 async function histoData (request, response) {
-  var strFromDateTime = request.body.fromdatetime
-  var strToDateTime = request.body.todatetime
+  const {fromdatetime:strFromDateTime, todatetime:strToDateTime} = request.body;
   var strSQL = `
-SELECT qrySubBlocksPreviousDay.WhoPrinted, Count(qrySubBlocksPreviousDay.BlockID) AS CountOfBlockID
-  FROM (SELECT tblSlides.WhoPrinted, tblSlides.BlockID
+        SELECT qrySubBlocksPreviousDay.WhoPrinted, Count(qrySubBlocksPreviousDay.BlockID) AS CountOfBlockID
+        FROM (SELECT tblSlides.WhoPrinted, tblSlides.BlockID
         FROM tblSlides
         WHERE (((tblSlides.DTPrinted)>=('${strFromDateTime}') And (tblSlides.DTPrinted)<'${strToDateTime}'))
         GROUP BY tblSlides.WhoPrinted, tblSlides.BlockID) as qrySubBlocksPreviousDay
-  GROUP BY qrySubBlocksPreviousDay.WhoPrinted;`
-  var result = await db_query(strSQL)
-  if ('error' in result) {throw result['error']}
-  response.json(result)
+        GROUP BY qrySubBlocksPreviousDay.WhoPrinted;`
+  await db_query(strSQL).then((res)=>response.json(res)).catch((e)=>(console.error(e)))
 }
+
 async function slideDistribution (request, response) {
-  let strAction = request.body.action
-  let strUser = request.body.userid
-  let strScanLocation = request.body.scanlocation
+  const {action:strAction, userid:strUser, scanlocation:strScanLocation} = request.body;
   switch (strAction) {
     case 'CreateNewSlideDistribution':
       let strSlideTrayID = request.body.slidetray
-      let strSQL = `
-INSERT INTO OPENLIS.tblSlideDistribution
-                    (SlideTray,
-                    Status,
-                    WhoMarkedReadyForCourier,
-                    DTReadyForCourier,
-                    SlideDistributionLocation,
-                    StationSlideTrayScanned,
-                    Audit)
-                    VALUES
-                    ('${strSlideTrayID}',
-                    'PendingLocation',
-                    '${strUser}',
-                    NOW(),
-                    'Location Being Assigned',
-                    '${strScanLocation}',
-                    concat('Initial insert:', now(), ' ')
-                    );`
-      var result = await db_query(strSQL)
-      if ('error' in result) {throw result['error']}
-      response.json(result)
+      var strSQL = `
+                INSERT INTO OPENLIS.tblSlideDistribution
+                (SlideTray,
+                Status,
+                WhoMarkedReadyForCourier,
+                DTReadyForCourier,
+                SlideDistributionLocation,
+                StationSlideTrayScanned,
+                Audit)
+                VALUES
+                ('${strSlideTrayID}',
+                'PendingLocation',
+                '${strUser}',
+                NOW(),
+                'Location Being Assigned',
+                '${strScanLocation}',
+                concat('Initial insert:', now(), ' ')
+                );
+            `
+      await db_query(strSQL).then((res)=>response.json(res)).catch((e)=>(console.error(e)))
       break
     case 'MarkSlideToBeDistributed':
       let strSlideDistID = request.body.slidedistid
       let strSlideTray = request.body.slidetray
       let strSlideID = request.body.slideid
-      let strSQLMarkToBeDistributed = `
-UPDATE OPENLIS.tblSlides
-      SET
-      Status = 'ReadyForCourier',
-      Audit = CONCAT(Audit, 'Marked in tray:',NOW(), '.'),
-      SlideStatusID = '$itpl',
-      SlideDistributionID = ${strSlideDistID}
-      WHERE SlideID = '${strSlideID}';
-      /*qrySlideCountInTrayBySlideDistr*/
-      SELECT 	distinct ts3.SlideID,
-  			ts1.CaseSlidesInTray,
-        ts2.CaseSlidesTotal,
-        ts2.CaseSlidesTotal-ts1.CaseSlidesInTray
-  	from
-  			(SELECT AccessionID,COUNT(SlideID) AS CaseSlidesInTray FROM tblSlides where SlideDistributionID = ${strSlideDistID} GROUP BY AccessionID, SlideCount) ts1
-      inner join
-  			(SELECT AccessionID,COUNT(tblSlides.SlideID) AS CaseSlidesTotal FROM tblSlides where AccessionID IN (select distinct AccessionID from tblSlides where SlideDistributionID = ${strSlideDistID}) GROUP BY AccessionID) ts2
-              on ts1.AccessionID = ts2.AccessionID
-  	inner join
-  			(SELECT SlideID,AccessionID FROM tblSlides where tblSlides.SlideDistributionID = ${strSlideDistID} GROUP BY SlideID,AccessionID) ts3
-              on ts1.AccessionID = ts3.AccessionID
-  	order by ts3.SlideID;
-  	      SELECT Count(SlideID) AS 'SlidesInTray'
-      FROM tblSlides
-      WHERE SlideDistributionID = (SELECT max(subTblSlideDistribution.SlideDistributionID) as SlideDistID FROM tblSlideDistribution as subTblSlideDistribution where SlideTray = '${strSlideTray}');
-      SELECT Count(qrySubBlocksCorrespondingToPendingSlides.subBlockID) AS BlockCountInTray
-      FROM (SELECT subTblSlides.BlockID AS subBlockID
+      var strSQLMarkToBeDistributed = `
+            UPDATE OPENLIS.tblSlides
+            SET
+            Status = 'ReadyForCourier',
+            Audit = CONCAT(Audit, 'Marked in tray:',NOW(), '.'),
+            SlideStatusID = '$itpl',
+            SlideDistributionID = ${strSlideDistID}
+            WHERE SlideID = '${strSlideID}';
+            /*qrySlideCountInTrayBySlideDistr*/
+            SELECT 	distinct ts3.SlideID,
+            ts1.CaseSlidesInTray,
+            ts2.CaseSlidesTotal,
+            ts2.CaseSlidesTotal-ts1.CaseSlidesInTray
+            from
+            (SELECT AccessionID,COUNT(SlideID) AS CaseSlidesInTray FROM tblSlides 
+            where SlideDistributionID = ${strSlideDistID} GROUP BY AccessionID, SlideCount) ts1
+            inner join
+            (SELECT AccessionID,COUNT(tblSlides.SlideID) AS CaseSlidesTotal FROM tblSlides 
+            where AccessionID IN (select distinct AccessionID from tblSlides 
+            where SlideDistributionID = ${strSlideDistID}) 
+            GROUP BY AccessionID) ts2
+            on ts1.AccessionID = ts2.AccessionID
+            inner join
+            (SELECT SlideID,AccessionID FROM tblSlides where tblSlides.SlideDistributionID = ${strSlideDistID} 
+            GROUP BY SlideID,AccessionID) ts3
+            on ts1.AccessionID = ts3.AccessionID
+            order by ts3.SlideID;
+            SELECT Count(SlideID) AS 'SlidesInTray'
+            FROM tblSlides
+            WHERE SlideDistributionID = (SELECT max(subTblSlideDistribution.SlideDistributionID) 
+            as SlideDistID FROM tblSlideDistribution as subTblSlideDistribution where SlideTray = '${strSlideTray}');
+            SELECT Count(qrySubBlocksCorrespondingToPendingSlides.subBlockID) AS BlockCountInTray
+            FROM (SELECT subTblSlides.BlockID AS subBlockID
             FROM tblSlides as subTblSlides
             WHERE subTblSlides.SlideDistributionID = ${strSlideDistID}
-            GROUP BY subTblSlides.BlockID) AS qrySubBlocksCorrespondingToPendingSlides
-      ;`
-      var result = await db_query(strSQLMarkToBeDistributed)
-      if ('error' in result) {throw result['error']}
-      response.json(result)
+            GROUP BY subTblSlides.BlockID) AS qrySubBlocksCorrespondingToPendingSlides;
+          `
+      await db_query(strSQLMarkToBeDistributed).then((res)=>response.json(res)).catch((e)=>(console.error(e)))
       break
     case 'MarkSlidesReadyForCourier':
       let strSlideDistIDMarkForCourier = request.body.slidedistid
       let strUserMarkForCourier = request.body.userid
       let strSlideDistrLocID = request.body.slidedistrloc
       let strScanLocationMarkForCourier = request.body.scanlocation
-      let strSQLMarkSlidesReadyForCourier = `
+      var strSQLMarkSlidesReadyForCourier = `
         UPDATE OPENLIS.tblSlideDistribution
         SET
         Status = 'Ready For Courier',
@@ -501,31 +471,29 @@ UPDATE OPENLIS.tblSlides
         SlideStatusID = '$rfc'
         WHERE SlideDistributionID = ${strSlideDistIDMarkForCourier};
       `
-      var result = await db_query(strSQLMarkSlidesReadyForCourier)
-      if ('error' in result) {throw result['error']}
-      response.json(result)
+      await db_query(strSQLMarkSlidesReadyForCourier).then((res)=>response.json(res)).catch((e)=>(console.error(e)))
       break
     case 'AssignTrayNewLocation':
       let strUserTrayNewLoc = request.body.userid
       let strSlideDistrLocIDForST = request.body.slidedistrloc
       let strScanLocationForST = request.body.scanlocation
       let strSlideTrayIDForST = request.body.slidetray
-      let strSQLAssignNewLoc = `
-UPDATE OPENLIS.tblSlideDistribution as tblUpdate
-      Inner Join (SELECT max(subTblSlideDistribution.SlideDistributionID) as SlideDistID FROM tblSlideDistribution as subTblSlideDistribution where SlideTray = '${strSlideTrayIDForST}') as tblB ON tblUpdate.SlideDistributionID = tblB.SlideDistID
-      SET
-      tblUpdate.SlideDistributionLocation = '${strSlideDistrLocIDForST}',
-      tblUpdate.Audit = CONCAT(tblUpdate.Audit, 'Assigned location:',NOW(), '.'),
-      tblUpdate.StationLocationScanned = '${strScanLocationForST}',
-      tblUpdate.WhoSetLocation = '${strUserTrayNewLoc}'
-      WHERE tblUpdate.SlideDistributionID = SlideDistID;`
-      var result = await db_query(strSQLAssignNewLoc)
-      if ('error' in result) {throw result['error']}
-      response.json(result)
+      var strSQLAssignNewLoc = `
+        UPDATE OPENLIS.tblSlideDistribution as tblUpdate
+        Inner Join (SELECT max(subTblSlideDistribution.SlideDistributionID) as SlideDistID 
+        FROM tblSlideDistribution as subTblSlideDistribution where SlideTray = '${strSlideTrayIDForST}') 
+        as tblB ON tblUpdate.SlideDistributionID = tblB.SlideDistID
+        SET
+        tblUpdate.SlideDistributionLocation = '${strSlideDistrLocIDForST}',
+        tblUpdate.Audit = CONCAT(tblUpdate.Audit, 'Assigned location:',NOW(), '.'),
+        tblUpdate.StationLocationScanned = '${strScanLocationForST}',
+        tblUpdate.WhoSetLocation = '${strUserTrayNewLoc}'
+        WHERE tblUpdate.SlideDistributionID = SlideDistID;`
+      await db_query(strSQLAssignNewLoc).then((res)=>response.json(res)).catch((e)=>(console.error(e)))
       break
     case 'LoadSlideTray':
       let strSlideTrayIDExistingST = request.body.slidetray
-      let strSQLExistingST = `
+      var strSQLExistingST = `
       /*Query01*/
       SELECT max(subTblSlideDistribution.SlideDistributionID) as CurrentSlideDistID
       FROM tblSlideDistribution as subTblSlideDistribution
@@ -551,23 +519,28 @@ UPDATE OPENLIS.tblSlideDistribution as tblUpdate
           FROM
               tblSlides
           WHERE
-              (((tblSlides.SlideDistributionID) = (SELECT max(subTblSlideDistribution.SlideDistributionID) as SlideDistID FROM tblSlideDistribution as subTblSlideDistribution where SlideTray = '${strSlideTrayIDExistingST}')))
+              (((tblSlides.SlideDistributionID) = (SELECT max(subTblSlideDistribution.SlideDistributionID) 
+              as SlideDistID FROM tblSlideDistribution as subTblSlideDistribution 
+              where SlideTray = '${strSlideTrayIDExistingST}')))
           GROUP BY tblSlides.AccessionID , tblSlides.SlideCount) AS qrySlideCountInTrayByCase
-          INNER JOIN vwSlideCountByCase ON qrySlideCountInTrayByCase.AccessionID = vwSlideCountByCase.AccessionID) AS qrySubSlideCountsByAcc ON qrySubSlideCountsByAcc.AccessionID = tblSlides.AccessionID
+          INNER JOIN vwSlideCountByCase ON qrySlideCountInTrayByCase.AccessionID = vwSlideCountByCase.AccessionID)
+          AS qrySubSlideCountsByAcc ON qrySubSlideCountsByAcc.AccessionID = tblSlides.AccessionID
       WHERE
-          tblSlides.SlideDistributionID = (SELECT max(subTblSlideDistribution.SlideDistributionID) as SlideDistID FROM tblSlideDistribution as subTblSlideDistribution where SlideTray = '${strSlideTrayIDExistingST}');
+          tblSlides.SlideDistributionID = (SELECT max(subTblSlideDistribution.SlideDistributionID) as SlideDistID 
+          FROM tblSlideDistribution as subTblSlideDistribution where SlideTray = '${strSlideTrayIDExistingST}');
       SELECT Count(SlideID) AS 'SlidesInTray'
       FROM tblSlides
-      WHERE SlideDistributionID = (SELECT max(subTblSlideDistribution.SlideDistributionID) as SlideDistID FROM tblSlideDistribution as subTblSlideDistribution where SlideTray = '${strSlideTrayIDExistingST}');
+      WHERE SlideDistributionID = (SELECT max(subTblSlideDistribution.SlideDistributionID) as SlideDistID
+       FROM tblSlideDistribution as subTblSlideDistribution where SlideTray = '${strSlideTrayIDExistingST}');
       SELECT Count(qrySubBlocksCorrespondingToPendingSlides.subBlockID) AS BlockCountInTray
       FROM (SELECT subTblSlides.BlockID AS subBlockID
             FROM tblSlides as subTblSlides
-            WHERE subTblSlides.SlideDistributionID = (SELECT max(subTblSlideDistribution.SlideDistributionID) as SlideDistID FROM tblSlideDistribution as subTblSlideDistribution where SlideTray = '${strSlideTrayIDExistingST}')
+            WHERE subTblSlides.SlideDistributionID = (SELECT max(subTblSlideDistribution.SlideDistributionID) 
+            as SlideDistID FROM tblSlideDistribution as subTblSlideDistribution
+             where SlideTray = '${strSlideTrayIDExistingST}')
             GROUP BY subTblSlides.BlockID) AS qrySubBlocksCorrespondingToPendingSlides
       ;`
-      var result = await db_query(strSQLExistingST)
-      if ('error' in result) {throw result['error']}
-      response.json(result)
+      await db_query(strSQLExistingST).then((res)=>response.json(res)).catch((e)=>(console.error(e)))
       break
   }
 }

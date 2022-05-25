@@ -2,24 +2,24 @@
 //Sync New Slide Orders
 
 
-var dbConnMYSQL;
-var dbConnCoPath;
-var strSpecimenID = "empty";
-var strSQL;
-var strSQL1;
-var strSQL2;
-var result;
-var lastInsertIDResult;
-var mySQLresult;
-var intResultSize;
-var intSuccessfullInserts = 0;
-var strDateTime = DateUtil.getCurrentDate('yyyyMMddHHmmss');
-var strLastSyncDateTime = $('strLastSyncDateTime');  //Last DateTime Sync was ran
-var strMostRecentStatusDate;					//The most recent status date of stain orders that were uploaded.  If some of the database calls fail, this is where to pick back up.
-var strDBInsertStatus;
-var strTimeToComplete;
-var strSyncStatus;
-var intLastSyncID;
+let dbConnMYSQL;
+let dbConnCoPath;
+let strSpecimenID = "empty";
+let strSQL;
+let strSQL1;
+let strSQL2;
+let result;
+let lastInsertIDResult;
+let mySQLresult;
+let intResultSize;
+let intSuccessfullInserts = 0;
+let strDateTime = DateUtil.getCurrentDate('yyyyMMddHHmmss');
+let strLastSyncDateTime = $('strLastSyncDateTime');  //Last DateTime Sync was ran
+let strMostRecentStatusDate;					//The most recent status date of stain orders that were uploaded.  If some of the database calls fail, this is where to pick back up.
+let strDBInsertStatus;
+let strTimeToComplete;
+let strSyncStatus;
+let intLastSyncID;
 const strMYSQLUserName = configurationMap.get('MYSQLUserName');
 const strMYSQLPassword = configurationMap.get('MYSQLPassword');
 const strMYSQLJDBCConnection = configurationMap.get('MYSQLJDBCConnection');
@@ -53,7 +53,7 @@ try {
 
 				if(intResultSize>0)
 				{
-				for(var i = 0; i < intResultSize; i++)
+				for(let i = 0; i < intResultSize; i++)
 					{
 					//logger.debug("i: " + i.toString() + "Entry point.");
 					result.next();
@@ -63,7 +63,7 @@ try {
 						try{
 
 							//GetVariables That need cleaned up
-							var strLogComment = result.getString('log_comment');
+							let strLogComment = result.getString('log_comment');
 							strLogComment = escape(strLogComment);  //Need to clean up later.
 
 							//Keys off of status updates. Need to cascade status updates to slides

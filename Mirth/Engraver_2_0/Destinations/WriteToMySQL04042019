@@ -1,10 +1,10 @@
-var dbConnMYSQL;
-var strSpecimenID = "Empty";
-var strSQL;
-var result;
-var strBlockNotes;
-var strDateOfService;
-var strDateTime = DateUtil.getCurrentDate('yyyyMMddHHmmss');
+let dbConnMYSQL;
+let strSpecimenID = "Empty";
+let strSQL;
+let result;
+let strBlockNotes;
+let strDateOfService;
+let strDateTime = DateUtil.getCurrentDate('yyyyMMddHHmmss');
 const strMYSQLUserName = configurationMap.get('MYSQLUserName');
 const strMYSQLPassword = configurationMap.get('MYSQLPassword');
 const strMYSQLJDBCConnection = configurationMap.get('MYSQLJDBCConnection');

@@ -1,66 +1,109 @@
 <template>
   <div id="app">
-    <b-navbar class="navbar navbar-dark bg-dark fixed-top">
-      <b-badge>Slide Tracker</b-badge>
-      <b-item style='color: #b700ff;font-style: italic;font-size: smaller'>&nbsp; bev
-        <badge> {{ $store.getters.GetBEVersion }}</badge>
-      </b-item>
-      <b-item style='color: #007bff;font-style: italic;font-size: smaller'>&nbsp; fev
-        <badge> {{ $store.getters.GetFEVersion }}</badge>
-      </b-item>
-      <b-item style='color: #ffffff'>
-        &nbsp; Prod &nbsp;
-        <b-icon v-if="$store.getters.GetProduction" icon="check-square" scale="1" variant="success"></b-icon>
-        <b-icon v-if="!$store.getters.GetProduction" icon="x-circle" scale="1" variant="danger"></b-icon>
-        &nbsp; Socket &nbsp;
-        <b-icon v-if="$store.getters.GetLocalSocketStatus" icon="check-square" scale="1" variant="success"></b-icon>
-        <b-icon v-if="!$store.getters.GetLocalSocketStatus" icon="x-circle" scale="1" variant="danger"></b-icon>
-        &nbsp; Server &nbsp;
-        <b-icon v-if="$store.getters.GetBackendSocketStatus" icon="check-square" scale="1" variant="success"></b-icon>
-        <b-icon v-if="!$store.getters.GetBackendSocketStatus" icon="x-circle" scale="1" variant="danger"></b-icon>
-      </b-item>
-      <b-item v-if="$store.getters.GetnodeBackendTestMode" class="navbar-brand"
-              style="background-image: linear-gradient(#f3edd4, #ff6f69);margin-left: 15px">BACKEND LOCAL
-      </b-item>
-      <b-item v-if="$store.getters.GetvueFrontendTestMode" class="navbar-brand"
-              style="background-image: linear-gradient(#e7d0ce, #ffcc5c);margin-left: 15px">FRONTEND LOCAL
-      </b-item>
+    <div class="bg-image"></div>
+    <b-navbar class="navbar fixed-top">
+      <b-navbar-brand  to="/" v-on:click="setRoute('Home');" class="rounded-pill">
+        <img src="./assets/title.png" >
+      </b-navbar-brand>
       <b-navbar-nav class="ml-auto">
-        <b-link v-if="$store.getters.GetValidUser" :active="this.currentRouteName =='home'" class="nav-link" to="/">
-          Home
-        </b-link>
-        <b-link v-if="$store.getters.GetValidUser" :active="this.currentRouteName =='Embedding'" class="nav-link"
-                to="/embedding"> Embedding
-        </b-link>
-        <b-link v-if="$store.getters.GetValidUser" :active="this.currentRouteName =='SlidePrinting'" class="nav-link"
-                to="/slideprinting"> Slide Printing
-        </b-link>
-        <b-link v-if="$store.getters.GetValidUser" :active="this.currentRouteName =='SlideDistribution'" class="nav-link"
-                to="/slidedistribution"> Slide Distribution
-        </b-link>
-        <b-nav-item-dropdown no-caret right>
-          <template #button-content>
-                    <span>
-                      <b-badge v-model="scannedbadgeinput" :model="scannedbadgeinput"
-                               :style="getInputColor(scannedbadgeinput)">  {{ scannedbadgeinput }}</b-badge>
-                      <b-icon v-if="$store.getters.GetValidUser" icon="person-check" shift-h="3" shift-v="-3"
-                              variant="success">    </b-icon>
-                      <b-icon v-if="!$store.getters.GetValidUser" icon="person-x" shift-h="3" shift-v="-3"
-                              variant="danger">     </b-icon>
-                    </span>
-          </template>
-          <b-dd-item v-if="$store.getters.GetValidUser" to="/settings">Settings</b-dd-item>
-          <b-dd-item to="/caseinquiry">Case Inquiry</b-dd-item>
-          <b-dd-item v-if="$store.getters.GetValidUser" @click="logout()">Log Out</b-dd-item>
-        </b-nav-item-dropdown>
+        <b-nav-item v-if="ValidUser"
+                    :active="CurrentRoute == 'caseinquiry'"
+                    v-on:click="setRoute('caseinquiry');"
+                    to="/caseinquiry">
+          <b-iconstack font-scale="1" style="display: flex;align-items: center; justify-content: center;margin:auto;">
+            <b-icon stacked icon="search"></b-icon>
+          </b-iconstack>
+          Search
+        </b-nav-item>
+        <b-nav-item v-if="ValidUser"
+                    :active="CurrentRoute == 'Engraving'"
+                    v-on:click="setRoute('Engraving');"
+                    to="/settings">
+          <b-iconstack style="display: flex;align-items: center; justify-content: center;margin:auto;" >
+            <b-icon stacked icon="circle" scale="1" flip-v ></b-icon>
+            <b-icon stacked icon="circle-fill" scale=".1" shift-h="0" shift-v="3"></b-icon>
+            <b-icon stacked icon="circle-fill" scale=".14" shift-h="-1" shift-v="-1"></b-icon>
+            <b-icon stacked icon="circle-fill" scale=".16" shift-h="3"  shift-v="3"></b-icon>
+            <b-icon stacked icon="circle-fill" scale=".1" shift-h="2"  shift-v="-4"></b-icon>
+          </b-iconstack>
+          Grossing
+        </b-nav-item>
+        <b-nav-item v-if="ValidUser"
+                :active="CurrentRoute == 'Embedding'"
+                    v-on:click="setRoute('Embedding');"
+                to="/embedding"
+        >
+          <b-iconstack style="display: flex;align-items: center; justify-content: center;margin:auto" >
+            <b-icon stacked icon="calendar" scale="1" flip-v ></b-icon>
+            <b-icon stacked icon="grid3x3" scale=".45" shift-h="-3.3" shift-v="3.3"></b-icon>
+            <b-icon stacked icon="grid3x3" scale=".45" shift-h="-3.3" shift-v="-3.3"></b-icon>
+            <b-icon stacked icon="grid3x3" scale=".45" shift-h="3.3"  shift-v="3.3"></b-icon>
+            <b-icon stacked icon="grid3x3" scale=".45" shift-h="3.3"  shift-v="-3.3"></b-icon>
+          </b-iconstack>
+          Embedding
+        </b-nav-item>
+        <b-nav-item v-if="ValidUser"
+                :active="CurrentRoute == 'SlidePrinting'"
+                v-on:click="setRoute('SlidePrinting');"
+                to="/slideprinting"
+                    >
+          <b-iconstack font-scale="1" style="display: flex;align-items: center; justify-content: center;margin:auto" >
+            <b-icon stacked icon="bookmark" shift-v="-1" flip-v></b-icon>
+            <b-icon stacked scale=".7" icon="chat-left-text" shift-v="4"></b-icon>
+          </b-iconstack>
+          Printing
+        </b-nav-item>
+        <b-nav-item v-if="ValidUser"
+                :active="CurrentRoute == 'SlideDistribution'"
+                 v-on:click="setRoute('SlideDistribution');"
+                to="/slidedistribution"
+                    >
+          <b-iconstack style="display: flex;align-items: center; justify-content: center;margin:auto" >
+            <b-icon stacked icon="book" scale="1" ></b-icon>
+            <b-icon stacked icon="bookshelf" scale=".45" shift-h="-3.3" shift-v="3.3"></b-icon>
+            <b-icon stacked icon="bookshelf" scale=".45" shift-h="-3.3" shift-v="-3"></b-icon>
+            <b-icon stacked icon="bookshelf" scale=".45" shift-h="3.3"  shift-v="3.3"></b-icon>
+            <b-icon stacked icon="bookshelf" scale=".45" shift-h="3.3"  shift-v="-3"></b-icon>
+          </b-iconstack>
+          Distribution
+        </b-nav-item>
+        <b-nav-item v-if="ValidUser"
+                    :active="CurrentRoute == 'Diagnosis'"
+                    v-on:click="setRoute('Diagnosis');"
+                    to="/Diagnosis"
+        >
+          <b-iconstack style="display: flex;align-items: center; justify-content: center;margin:auto" >
+            <b-icon stacked icon="journal-text" scale="1" ></b-icon>
+          </b-iconstack>
+          Diagnosis
+        </b-nav-item>
+
       </b-navbar-nav>
+        <b-nav-item-dropdown no-caret right style="max-width:10rem;margin-left:auto;margin-right: 2rem;box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.5);" >
+          <template #button-content class="badge-scan rounded-pill">
+            {{ UserName}}
+          </template>
+          <b-dropdown-item to="/caseinquiry">Search</b-dropdown-item>
+          <b-dropdown-item to="/settings">Settings</b-dropdown-item>
+          <b-dropdown-item v-if="ValidUser" @click="logout()">Log Out </b-dropdown-item>
+          <b-dropdown-item class="m-auto" disabled>
+
+          </b-dropdown-item>
+          <b-dropdown-item   disabled>
+            Frontend<span v-if="FEVersion" style='color: #007bff;text-shadow:none !important;font-size: smaller'>&nbsp;v {{ FEVersion }} ({{this.nodeEnv}})</span>
+          </b-dropdown-item>
+          <b-dropdown-item style='color: #007bff;'  disabled>
+            Local <span v-if="LocalVersion" style='color: #007bff;text-shadow:none !important;font-size: smaller'>&nbsp;v {{ LocalVersion }} ({{StationName}})</span>&nbsp;
+          <b-icon-check2-circle v-if="LocalStatus" variant="success"></b-icon-check2-circle><b-icon-x-circle v-if="!LocalStatus" variant="danger"></b-icon-x-circle>
+        </b-dropdown-item>
+          <b-dropdown-item style='color: #007bff;'  disabled>
+            Backend<span v-if="BEVersion" style='color: #007bff;text-shadow:none !important;font-size: smaller'>&nbsp;v {{ BEVersion }}(TestMode:{{BETestMode}})</span>&nbsp;
+            <b-icon-check2-circle v-if="BEStatus" variant="success"></b-icon-check2-circle><b-icon-x-circle v-if="!BEStatus" variant="danger"></b-icon-x-circle>
+          </b-dropdown-item>
+        </b-nav-item-dropdown>
     </b-navbar>
-    <div class="container">
-      <br>
-      <div class="row">
+    <br>
         <router-view></router-view>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -68,8 +111,10 @@
 @import './assets/app_style.css';
 </style>
 <script>
-import axios from 'axios'
 import store from './store.js'
+import { mapGetters } from 'vuex';
+import { mapMutations } from 'vuex'
+
 
 export default {
   name: 'app',
@@ -77,23 +122,7 @@ export default {
     return {
       userinfo: {},
       scannedbadgeinput: "Scan Badge To Start",
-      defaultbadgeinput: "Scan Badge To Start",
-    }
-  },
-  sockets: {
-    toast: function (data) {
-      console.log('toast')
-      if (data.type=='versionError'){
-        this.makeToast(data.text, data.text, data.color,9999999,"b-toaster-bottom-full")
-        this.refresh();
-      }
-      else{
-        this.makeToast(data.text, data.text, data.color,0)
-      }
-    },
-    stream: function (data) {
-      console.log('socket on')
-      this.validateScanData(data)
+      defaultbadgeinput: this.scannedbadgeinput,
     }
   },
   mounted() {
@@ -104,79 +133,26 @@ export default {
     }
   },
   methods: {
+    ...mapMutations({
+      setRoute: 'SetCurrentRouteName'
+    }),
     refresh() {
-      setTimeout(function () {
+      setTimeout( () => {
         location.reload()
       }, 1000*60*5); //5 mins
     },
-
-    validateScanData(data) {
-      switch (data.barcodeScanData.substring(0, 4)) {
-        case 'HBLK':
-          break
-        case 'SBDG':
-          store.commit('SetSlideQueuePath', data.slideQueuePath)
-          store.commit('SetStationName', data.stationName)
-          this.scannedbadgeinput = data.barcodeScanData
-          this.scanbadge()
-          break
-        default:
-      }
-    },
     logout() {
       store.commit('SetValidUser', false)
-      store.commit('SetUserName', '')
+      store.commit('SetUserName', this.DefaultUserName)
       this.scannedbadgeinput = this.defaultbadgeinput
       this.makeToast("Logging out user", "Logged Out", "warning")
-    },
-    scanbadge() {
-      if (this.scannedbadgeinput.substring(0, 4) === "SBDG") {
-        this.userid = this.scannedbadgeinput.substring(4);
-        axios.post(store.getters.getApiUrl + '/getUserInfo', {
-          userid: this.userid
-        })
-            .then(userinfodata => {
-              this.loading = false;
-              this.error_message = '';
-              if (userinfodata.errorcode) {
-                this.error_message = `Error looking up badge.`
-                this.makeToast("invalid badge prefix or badge error", "invalid badge", "danger")
-                console.log('error')
-                return
-              }
-              this.userinfo = userinfodata.data;
-              store.commit('SetUserName', this.userinfo[0].username)
-              //Validate user
-              if (store.getters.GetUsername.length > 0) {
-                store.commit('SetValidUser', true)
-                this.scannedbadgeinput = store.getters.GetUsername
-                this.makeToast("User Logged In", "Logged In", "success")
-              }
-            }).catch((e) => {
-          console.log(e)
-          this.makeToast("Log In Error: " + e, "Error", "danger")
-        })
-      } else {
-        this.makeToast("invalid badge prefix or badge error", "invalid badge", "danger")
-      }
     },
     getInputColor(text) {
       if (text !== this.defaultbadgeinput && !/\d/.test(text) && text.length > 0) return {'background-color': '#28a745'};
       if (text !== this.defaultbadgeinput && /\d/.test(text) && text.length > 0) return {'background-color': '#ffc107'};
       if (text === this.defaultbadgeinput) return {'background-color': '#dc3545'};
       return {'background-color': '#ffc107'};
-    },
-    makeToast(content, title, variant = null, time = 1500,toaster_type= "b-toaster-top-left") {
-      this.$bvToast.toast(content, {
-        title: title,
-        variant: variant,
-        solid: true,
-        autoHideDelay: time,
-        toaster: toaster_type
-      })
     }
-
-
   },
   computed: {
     currentRouteName() {
@@ -184,7 +160,20 @@ export default {
     },
     nodeEnv() {
       return process.env.NODE_ENV
-    }
+    },
+    ...mapGetters({
+      StationName:'GetStationName',
+      DefaultUserName:'GetDefaultUsername',
+      LocalVersion:'GetLocalVersion',
+      BEVersion:'GetBEVersion',
+      LocalStatus:'GetLocalSocketStatus',
+      FEVersion:'GetFEVersion',
+      BEStatus:'GetBackendSocketStatus',
+      ValidUser :'GetValidUser',
+      UserName :'GetUsername',
+      CurrentRoute :'GetCurrentRouteName',
+      BETestMode:'getBackendTestMode'
+    })
   }
 }
 </script>

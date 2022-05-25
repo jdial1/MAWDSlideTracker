@@ -10,18 +10,21 @@
 ============================================================================================ -->
 <template>
 <div class="container"  v-if="this.$store.getters.GetValidUser">
+<!--  <h1>Slide Printing</h1>-->
   <div class="mx-auto">
 
 <!--Scan Block......................-->
-    <b-form v-on:submit.prevent="pullOrPrintSlides()" inline>
-    <div class="customheadertext">
+    <b-button-toolbar v-on:submit.prevent="pullOrPrintSlides()">
+    <b-button class="ml-5">
         <h3>Scan BlockID:  </h3>
-    </div>
-      <b-input id="InputBlockID" class="mb-2 mr-sm-2 mb-sm-0" v-model="blockID" :disabled=inputTextBoxDisabled placeholder="Scan Block to Proceed" />
-      <b-button type="submit" variant="primary lg" :disabled=inputButtonDisabled>{{formstatuslabel}}</b-button>
-      <b-button id="btnManualBlockIDToggle" :disabled=inputNoBarcodeButtonDisabled v-b-toggle.collapse-manualbockid variant="outline-secondary"> No Barcode </b-button>
+    </b-button>
+      <b-input-group size="sm" class="align-content-center" v-model="blockID" :disabled=inputTextBoxDisabled placeholder="Scan Block to Proceed" >
+        <b-form-input id="InputBlockID" ref="InputBlockField"  v-model="blockID"></b-form-input>
+      </b-input-group>
+        <b-button type="submit" variant="primary lg" :disabled=inputButtonDisabled>{{formstatuslabel}}</b-button>
+       <b-button id="btnManualBlockIDToggle" :disabled=inputNoBarcodeButtonDisabled v-b-toggle.collapse-manualbockid variant="outline-secondary"> No Barcode </b-button>
        <b-button variant="secondary sm" @click="clearCurrentSlide()">Cancel</b-button>
-    </b-form>
+    </b-button-toolbar>
   </div>
   <div v-if="loading" class="loader">
     <b-spinner variant="primary" label="Spinning"></b-spinner>
@@ -30,7 +33,7 @@
   <div v-else-if="error_message">
     <h3>{{ error_message }}</h3>
   </div>
-  <b-collapse id="collapse-manualbockid" class="mt-2">
+  <b-collapse  id="collapse-manualbockid" class="mt-2">
     <b-card>
       <p class="card-text">If you cannot scan the barcode, you can manually input the full block ID in the fields below:<br>**Double check the slides that pull up correspond to the block**</p>
       <b-row>
@@ -89,17 +92,15 @@
     </b-card>
   </b-collapse>
   <br>
-  <div class="customsubheadertext">
+  <div v-if="slides.length" class="customsubheadertext">
     <h5>Part {{ this.currentPart }} of {{ this.totalParts }}</h5>
     <h5>Block {{ this.currentBlock }} of {{ this.totalBlocks }}</h5>
     <h5>Slides on this block: {{ slides.length }}</h5>
   </div>
 
-<div class="container">
+<div v-if="slides.length" class="container">
  <div class="row row-flex">
   <!--<div class="col-sm-2 mt-2" v-for="result in slides">-->
-
-
         <div class="col-md-2 col-sm-6" v-for="result in slides">
            <div class="glassslide">
              <label>
@@ -154,8 +155,7 @@ import store from '../store.js'
 
 // define the external API URL
 const API_URLWithSlideParameters = store.getters.getApiUrl + '/slidetracker/slideparameters?blockid='  //For Get Call
-// Helper function to help build urls to fetch slide details from blockid
-function buildUrl(blockID) {
+const buildUrl = (blockID) => {
   return `${API_URLWithSlideParameters}${blockID}`
 }
 export default {
@@ -190,43 +190,7 @@ export default {
   },
 
 
-  sockets: {
-      connect: function () {
-          console.log('socket connected within slide')
-      },
-      customEmit: function (data) {
-          console.log(' within slide this method was fired by the socket server. eg: io.emit("customEmit", data)')
-      },
-      stream: function(data) {
-          console.log("SOCKET STREAM SLIDE DIST")
-          this.validateScanData(data)
-      }
-  },
   methods: {
-    validateScanData(data){
-      if (store.state.validuser) {
-        store.commit('SetSlideQueuePath', data.slideQueuePath)
-        store.commit('SetStationName', data.stationName)
-        //Depending on prefix, send to correct placeholder
-        console.log("SLIDE PRINTER: "+this.$route.name)
-        switch(data.barcodeScanData.substring(0,4)) {
-          case 'HBLK':
-            this.blockID = data.barcodeScanData
-            this.pullSlides();
-            break
-          case 'SBDG':
-            break
-          case 'HSLD':
-          this.blockID = 'Scan block not slide'
-            break
-          default:
-            // code block
-        }
-      } else {
-        this.blockID = ''
-      }
-
-    },
     pullOrPrintSlides()
     {
 
@@ -236,10 +200,7 @@ export default {
     else if (this.formstatus == 'readytoprint') {
       console.log('goto print slides');
       this.printSlides();
-    }{
-
     }
-
   },
 
   printSlides()
@@ -254,14 +215,14 @@ export default {
       curRoute : this.currentRouteName
 
       })
-      .then(function (response) {
+      .then((response) =>{
       console.log('slides printed')
       console.log(response.info)
       if (response.files){
         this.makeToast("Files waiting to be printed:\n "+response.files, "Slide Printer Issues", "danger",10000)
       }
       })
-      .catch(function (error) {
+      .catch( (error) => {
       console.log(error)
       });
 
@@ -285,17 +246,12 @@ export default {
       //uses fetch as opposed to Axios
       fetch(buildUrl(blockID))
         //.then(response => response.json())
-        .then(function(response){
+        .then((response) => {
           return response.json()
         })
         .then(data => {
           this.loading = false
           this.error_message = ''
-          if (data.errorcode) {
-            this.error_message = `Sorry, block with blockID '${blockID}' not found.`
-            console.log('error')
-            return
-          }
           console.log(this.currentRouteName)
           this.slides = data;
           this.formstatus = 'readytoprint';
@@ -314,10 +270,10 @@ export default {
         toPrintStatus: blChecked,
         curRoute : this.currentRouteName
       })
-      .then(function (response) {
+      .then( (response) => {
         console.log(response);
       })
-      .catch(function (error) {
+      .catch( (error) => {
         console.log(error);
       });
 
@@ -331,11 +287,7 @@ export default {
             .then(apidata => {
               this.loading = false;
               this.error_message = '';
-              if (apidata.errorcode) {
-                this.error_message = `Error looking up badge.`
-                console.log('error')
-                return
-              }
+
               console.log('apidata:', apidata);
               let temp = {}
               temp = apidata.data
@@ -349,7 +301,7 @@ export default {
             }).catch((e) => {
               console.log(e)
             })
-            .catch(function (error) {
+            .catch( (error) => {
               console.log("error:")
               console.log(error)
             })
@@ -367,23 +319,13 @@ export default {
       this.setFocusToInputBlockID()
     },
     setFocusToInputBlockID(){
-      document.getElementById("InputBlockID").focus();
+      this.$refs.InputBlockField.focus();
     },
     manuallyLoadBlockID(){
       this.blockID = "HBLK" + this.manualcaseprefix + this.manualcasetwodigityear + '-' + this.manualcasenumber + '_' + this.manualpart + '_' + this.manualblock
       this.pullSlides()
       //Collapse additional options
       document.getElementById("btnManualBlockIDToggle").click()
-    },
-    makeToast(content, title, variant = null,time=1500,locn='b-toaster-top-left') {
-      this.$bvToast.toast(content, {
-        title: title,
-        variant: variant,
-        solid: true,
-        autoHideDelay: time,
-        toaster: locn,
-        appendToast: true
-      })
     }
   },
   computed:{
@@ -407,7 +349,7 @@ export default {
       }
     },
     currentRouteName() {
-      return this.$route.name;
+      return store.getters.GetCurrentRouteName;
     }
   }
 }

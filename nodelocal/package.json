@@ -1,16 +1,18 @@
 {
   "name": "nodelocal",
-  "version": "1.0.0",
+  "localVersion": "5.0.0",
   "description": "Used to access local resources ie barcode scanner",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/index.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@serialport/parser-readline": "^10.3.0",
     "dotenv": "^6.2.0",
-    "serialport": "^7.1.5",
-    "socket.io": "^2.4.1"
+    "serialport": "^8.0.8",
+    "socket.io": "^2.2.0"
   }
 }

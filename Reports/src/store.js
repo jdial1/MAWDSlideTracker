@@ -136,7 +136,7 @@ export default new Vuex.Store({
             commit('ClearChartLabels')
             commit('ClearChartData')
             console.log(response)
-            for (var i = 0; i < response.data.length; i++) {
+            for (let i = 0; i < response.data.length; i++) {
               let strXAxisNames = ''
               if (response.data[i].WhoPrinted === null) {
                 strXAxisNames = 'Unknown'
@@ -174,7 +174,7 @@ export default new Vuex.Store({
             commit('ClearChartData')
 
             console.log(response)
-            for (var i = 0; i < response.data.length; i++) {
+            for (let i = 0; i < response.data.length; i++) {
               let strXAxisNames = ''
               if (response.data[i].WhoPrinted === null) {
                 strXAxisNames = 'Unknown'
@@ -230,7 +230,7 @@ export default new Vuex.Store({
             let arColors = colorGenerator.interpolateColors(response.data.length, colorScale, colorRangeInfo)
             // Shuffle Color array - not active
             // ShuffleArray(arColors)
-            for (var i = 0; i < response.data.length; i++) {
+            for (let i = 0; i < response.data.length; i++) {
               // Build Chart Data Array
               let strBackgroundColor = arColors[i]
 

@@ -1,24 +1,24 @@
 //  Sync Slide Orders that do not match due to block being deleted.
 //  Not matched because block_inst gets updated when new block is created.
 
-var dbConnMYSQL
-var dbConnCoPath
-var strSpecimenID = "empty"
-var strSQL
-var strSQL1
-// var strSQL2 - set within try later
-var stainOrderMissingBlockResult
-var lastInsertIDResult
-var mySQLresult
-var intResultSize
-var intSuccessfullInserts = 0
-var strDateTime = DateUtil.getCurrentDate('yyyyMMddHHmmss')
-var strLastSyncDateTime = $('strLastSyncDateTime'); //Last DateTime Sync was ran
-var strMostRecentStatusDate; //The most recent status date of stain orders that were uploaded.  If some of the database calls fail, this is where to pick back up.
-var strDBInsertStatus
-var strTimeToComplete
-var strSyncStatus
-var intLastSyncID
+let dbConnMYSQL
+let dbConnCoPath
+let strSpecimenID = "empty"
+let strSQL
+let strSQL1
+// let strSQL2 - set within try later
+let stainOrderMissingBlockResult
+let lastInsertIDResult
+let mySQLresult
+let intResultSize
+let intSuccessfullInserts = 0
+let strDateTime = DateUtil.getCurrentDate('yyyyMMddHHmmss')
+let strLastSyncDateTime = $('strLastSyncDateTime'); //Last DateTime Sync was ran
+let strMostRecentStatusDate; //The most recent status date of stain orders that were uploaded.  If some of the database calls fail, this is where to pick back up.
+let strDBInsertStatus
+let strTimeToComplete
+let strSyncStatus
+let intLastSyncID
 const strMYSQLUserName = configurationMap.get('MYSQLUserName')
 const strMYSQLPassword = configurationMap.get('MYSQLPassword')
 const strMYSQLJDBCConnection = configurationMap.get('MYSQLJDBCConnection')
@@ -27,8 +27,8 @@ const strSybaseUserName = configurationMap.get('SybaseUserName')
 const strSybasePassword = configurationMap.get('SybasePassword')
 const strSybaseJDBCConnection = configurationMap.get('SybaseJDBCConnection')
 const strSybaseJDBCDriver = configurationMap.get('SybaseJDBCDriver')
-var strSyncID = $('intLastSyncID')
-var intDebugLevel = 0
+let strSyncID = $('intLastSyncID')
+let intDebugLevel = 0
 
 // If no syncid, set as 0.
 if (isNaN(strSyncID)) {
@@ -59,16 +59,16 @@ try {
     dbConnCoPath = DatabaseConnectionFactory.createDatabaseConnection(strSybaseJDBCDriver, strSybaseJDBCConnection, strSybaseUserName, strSybasePassword)
 
     if (intResultSize > 0) {
-      for (var i = 0; i < intResultSize; i++) {
+      for (let i = 0; i < intResultSize; i++) {
         // For each stin that is not matched get Block Desig Label
         stainOrderMissingBlockResult.next()
         // try Catch within loop.  stainOrderMissingBlockResult.getString Errors when block inst is null.
         try {
           // Keys off of status updates. Need to cascade status updates to slides
-          var strSQL2 = ""
-          var strSpecId = stainOrderMissingBlockResult.getString('specimen_id')
-          var strPartInt = stainOrderMissingBlockResult.getString('part_inst')
-          var strBlockInt = stainOrderMissingBlockResult.getString('block_inst')
+          let strSQL2 = ""
+          let strSpecId = stainOrderMissingBlockResult.getString('specimen_id')
+          let strPartInt = stainOrderMissingBlockResult.getString('part_inst')
+          let strBlockInt = stainOrderMissingBlockResult.getString('block_inst')
 
           strSQL2 = "SELECT \
           c_specimen.specnum_formatted, \
@@ -125,7 +125,7 @@ try {
             logger.debug("strSQL2:" + strSQL2)
           }
 
-          var blockInfoResult = dbConnCoPath.executeCachedQuery(strSQL2)
+          let blockInfoResult = dbConnCoPath.executeCachedQuery(strSQL2)
 
           if (intDebugLevel > 9) {
             logger.debug("Block Info Request Query Completed")
@@ -137,24 +137,24 @@ try {
             // Load first restult otherwise error thrown
             blockInfoResult.next()
             
-            // var strBlkDesigLabel = blockInfoResult.getString('blkdesig_label')
+            // let strBlkDesigLabel = blockInfoResult.getString('blkdesig_label')
             // WHERE `specimen_id` = '" + blockInfoResult.getString('specimen_id') + "' AND \
 
             // Sanitize variables
 
-            var strPatientLName = SanitizeVariableNoLeadingAndTrailingApostrophiesNullAsEmptyString(blockInfoResult.getString('lastname'))
-            var strPatientFName = SanitizeVariableNoLeadingAndTrailingApostrophiesNullAsEmptyString(blockInfoResult.getString('firstname'))
-            var strPatientMiddleName = SanitizeVariableNoLeadingAndTrailingApostrophiesNullAsEmptyString(blockInfoResult.getString('middlename'))
-            var strPatientFullname = "'" + strPatientLName + "," + strPatientFName + " " + strPatientMiddleName + "'"
-            var strPartDescription = SanitizeVariableAddLeadingAndTrailingApostrophies(blockInfoResult.getString('part_description'))
-            var strPartComment = SanitizeVariableAddLeadingAndTrailingApostrophies(blockInfoResult.getString('comment'))
-            var strBlockComment = SanitizeVariableAddLeadingAndTrailingApostrophies(blockInfoResult.getString('log_comment'))
+            let strPatientLName = SanitizeVariableNoLeadingAndTrailingApostrophiesNullAsEmptyString(blockInfoResult.getString('lastname'))
+            let strPatientFName = SanitizeVariableNoLeadingAndTrailingApostrophiesNullAsEmptyString(blockInfoResult.getString('firstname'))
+            let strPatientMiddleName = SanitizeVariableNoLeadingAndTrailingApostrophiesNullAsEmptyString(blockInfoResult.getString('middlename'))
+            let strPatientFullname = "'" + strPatientLName + "," + strPatientFName + " " + strPatientMiddleName + "'"
+            let strPartDescription = SanitizeVariableAddLeadingAndTrailingApostrophies(blockInfoResult.getString('part_description'))
+            let strPartComment = SanitizeVariableAddLeadingAndTrailingApostrophies(blockInfoResult.getString('comment'))
+            let strBlockComment = SanitizeVariableAddLeadingAndTrailingApostrophies(blockInfoResult.getString('log_comment'))
 
             if (intDebugLevel > 9) {
                 logger.debug("Variables Sanitized")
               }
 
-            var strInsertNewBlockSQL = "INSERT INTO `tblBlock` \
+            let strInsertNewBlockSQL = "INSERT INTO `tblBlock` \
             (`BlockID`, \
             `SpecNumFormatted`, \
             `PatientName`, \

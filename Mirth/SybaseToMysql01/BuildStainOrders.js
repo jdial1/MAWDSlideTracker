@@ -1,8 +1,8 @@
-var dbConnMYSQL
-var strSQL
-var result
-var strDateTime = DateUtil.getCurrentDate('yyyyMMddHHmmss')
-var strSyncID = $('intLastSyncID')
+let dbConnMYSQL
+let strSQL
+let result
+let strDateTime = DateUtil.getCurrentDate('yyyyMMddHHmmss')
+let strSyncID = $('intLastSyncID')
 const strMYSQLUserName = configurationMap.get('MYSQLUserName')
 const strMYSQLPassword = configurationMap.get('MYSQLPassword')
 const strMYSQLJDBCConnection = configurationMap.get('MYSQLJDBCConnection')

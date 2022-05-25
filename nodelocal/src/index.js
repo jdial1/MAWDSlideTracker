@@ -1,48 +1,21 @@
-require('dotenv').load()
-var barcodeScan = require('./barcode/barcode-scan')
-var httpServer = require('./http-server')
-//barcodeScan.init('COM4')
-//const socketport = '8001'
+const SlideQueuePath='/media/slideprinters/slidequeue/JustinTest/'
+const StationName='JustinTest'
+const BarcodeScannerPort='COM3'
+const WebSocketPort='8001'
 
-var strSlideQueuePath = process.env.SlideQueuePath
-var strStationName = process.env.StationName
-var strBarcodeScannerPort = process.env.BarcodeScannerPort
-var socketport = process.env.WebSocketPort
+const { localVersion } = require('../package.json');
+const SerialPort = require('serialport');
+const { ReadlineParser } = require('@serialport/parser-readline');
 
-barcodeScan.init(strBarcodeScannerPort)
+const parser = new SerialPort(BarcodeScannerPort).pipe(new ReadlineParser({ delimiter: '\r\n' }));
+const server = require("http").createServer();
+const io = require('socket.io').listen(server);
+server.listen(WebSocketPort);
 
-console.log(socketport)
-
-//Start http server
-server = httpServer.start(function (err, message) {
-  if (err) console.log(err)
-  console.log(message)
-  // server sends some data in the callback to display maybe
-})
-
-//Load websockets
-var io = require('socket.io').listen(server)
-server.listen(socketport)
-console.log('http server created and listening on ', socketport)
-
-
-//Socket connected event fired
-io.sockets.on('connection', function(socket){
-  console.log('socket.io connected on ', socketport)
-
-    //Barcode scan event fired
-    parser.on('data', function(data) {
-      console.log('Barcode scan detected')
-      console.log('Data:  ', data)
-      //socket.emit('stream', {'title': data})
-      var oStreamData ={
-        barcodeScanData: data,
-        stationName: strStationName,
-        slideQueuePath: strSlideQueuePath
-
-      }
-      socket.emit('stream', oStreamData)
-      //socket.emit('stream', {'barcodescan': data})
-
+io.sockets.on('connection', (socket) => {
+    console.log(socket.client.conn.server.clientsCount + " user(s) connected" );
+    parser.on('data', (barcodeScanData) => {
+      console.log(`${JSON.stringify({barcodeScanData, StationName, SlideQueuePath, localVersion}, null, 2)}`)
+      socket.emit('stream', {barcodeScanData, StationName, SlideQueuePath, localVersion})
     })
 });

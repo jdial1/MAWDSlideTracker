@@ -2,23 +2,21 @@
 
 <template >
 <div class="container" v-if="this.$store.getters.GetValidUser" >
+<!--  <h1>Slide Distribution</h1>-->
+  <b-button-toolbar key-nav pills style="border-radius: 15px">
+   <b-button :model="currentslidetray" :style="getInputColor(currentslidetray)" style="margin: auto">{{currentslidetray}}   </b-button>
+    <b-button style="margin: 5px 15px 5px 15px;padding: 0">Slide Count:<h3 style="font: 500 25px ubuntu;color: #e0dfdc">{{strInTraySlideCount}} </h3></b-button>
+    <b-button style="margin: 5px 15px 5px 15px;padding: 0">Block Count:<h3  style="font: 500 25px ubuntu;color: #e0dfdc">{{strInTrayBlockCount}} </h3></b-button>
+    <b-button class="m-auto"><span>{{formstatuslabel}}</span></b-button>
+    <b-button class="m-auto" @click="Cancel()"><span>Cancel</span></b-button>
 
-  <b-navbar class="bg-dark navbar-expan" style="white-space: nowrap;">
-    <b-nav-item  disabled ="navbar-brand"> <h3><b-badge :model="currentslidetray" :style="getInputColor(currentslidetray)">{{currentslidetray}}   </b-badge></h3></b-nav-item>
-    <b-nav-item>Slide Count:<h3><b-badge>{{strInTraySlideCount}} </b-badge></h3></b-nav-item>
-    <b-nav-item>Block Count:<h3><b-badge>{{strInTrayBlockCount}} </b-badge></h3></b-nav-item>
-    <b-button><span>{{formstatuslabel}}</span></b-button>
-    <b-button @click="Cancel()"><span>Cancel</span></b-button>
-    <b-nav-item class="navbar-brand"></b-nav-item>
-    <b-nav-item class='ml-auto'>
-      <b-form-radio-group  id="rdSlideTrayBehavior" v-model="rdSlideTrayBehaviorSelected" :options="rdSlideTrayBehaviorOptions" buttons name="radios-btn-default">
+      <b-form-radio-group class='m-auto p-sm-1'  id="rdSlideTrayBehavior" v-model="rdSlideTrayBehaviorSelected" :options="rdSlideTrayBehaviorOptions" buttons name="radios-btn-default">
       </b-form-radio-group>
-    </b-nav-item>
 
-  </b-navbar>
+  </b-button-toolbar>
   <br>
-  <div class='col-xs-6'>
-    <b-table v-if="this.slides.length>0" style="opacity: .90;white-space: nowrap;" striped hover dark small borderless :items="slides" :fields="fields" ></b-table>
+  <div class='col-xs-6' v-if="this.slides.length>0">
+    <b-table  style="opacity: .90;white-space: nowrap;" striped hover  small borderless :items="slides" :fields="fields" ></b-table>
     <blockcount> </blockcount>
 </div>
   </div>
@@ -68,50 +66,7 @@ return {
 mounted() {
   this.LoadTableData()
 },
-  sockets: {
-      connect: function () {
-          //console.log('socket connected within slide')
-      },
-      customEmit: function (data) {
-          //console.log(' within slide this method was fired by the socket server. eg: io.emit("customEmit", data)')
-      },
-      stream: function(data) {
-          console.log("SOCKET STREAM SLIDE DIST")
-          this.validateScanData(data)
-      }
-  },
 methods: {
-    validateScanData(data){
-      if (store.state.validuser) {
-        store.commit('SetSlideQueuePath', data.slideQueuePath)
-        store.commit('SetStationName', data.stationName)
-        //Depending on prefix, send to correct placeholder
-
-        switch(data.barcodeScanData.substring(0,4)) {
-          case 'HBLK':
-            //BlockScan Detected
-            this.inputtext = 'Cannot scan block here.'
-            break
-          case 'HSLD':
-            // Slide
-            this.ScanSlide(data.barcodeScanData)
-            break
-          case 'LOCN':
-            // Slide distribution location
-            this.ScanLocation(data.barcodeScanData)
-            break
-          case 'SLTR':
-            // Slide Tray
-            this.ScanSlideTray(data.barcodeScanData)
-            break
-          default:
-            // code block
-        }
-      } else {
-        this.inputtext = ''
-      }
-
-    },
     ScanSlide(strSlideID) {
         this.inputtext = strSlideID
 
@@ -139,10 +94,7 @@ methods: {
       .then(apidata => {
         this.loading = false;
         this.error_message = '';
-        if (apidata.errorcode) {
-        this.error_message = `Error MarkSlideToBeDistributed.`
-        return
-        }
+
         // console.log('MarkSlideToBeDistributed apidata:')
         // console.log(apidata)
         let temp = {}
@@ -158,11 +110,10 @@ methods: {
         this.LoadTableData()
 
       }).catch((e) => {
-        //console.log(e)
+        console.log(e)
       })
-      .catch(function (error) {
-        //console.log("error:")
-        //console.log(error)
+      .catch( (error)  => {
+        console.log(`error:${error}`)
       })
       } else {
           this.inputtext = 'Scan Slide Tray Before Slide'
@@ -192,10 +143,7 @@ methods: {
           .then(apidata => {
             this.loading = false;
             this.error_message = '';
-            if (apidata.errorcode) {
-            this.error_message = `Error creating new slide distribution.`
-            return
-            }
+
             // console.log('apidata:')
             // console.log(apidata)
             let temp = {}
@@ -207,7 +155,7 @@ methods: {
           }).catch((e) => {
             //console.log(e)
           })
-          .catch(function (error) {
+          .catch( (error) =>  {
             //console.log("error:")
             //console.log(error)
           })
@@ -238,11 +186,7 @@ methods: {
               .then(apidata => {
                 this.loading = false;
                 this.error_message = '';
-                if (apidata.errorcode) {
-                  this.error_message = `Error loading existing slide distr.`
-                  //console.log('error')
-                  return
-                }
+
                 let temp = apidata.data
 
 
@@ -262,11 +206,10 @@ methods: {
 
 
               }).catch((e) => {
-                //console.log(e)
+                console.log(e)
               })
-              .catch(function (error) {
-                //console.log("error:")
-                //console.log(error)
+              .catch( (error)  => {
+                console.log(`error: ${error}`)
               })
 
             } else {
@@ -361,9 +304,8 @@ methods: {
     },
     LoadTableData() {
         store.dispatch('LoadBlockCountTableData').then(() => {
-        // console.log('Show after promise blah')
-        // this.datacollection = store.state.objChartDataCollection
-        // console.log(store.state.blockCountTableItems)
+        this.datacollection = store.state.objChartDataCollection
+        console.log(store.state.blockCountTableItems)
         })
     },
     Cancel() {
@@ -387,7 +329,7 @@ methods: {
 },
 computed: {
   currentRouteName() {
-    return this.$route.name;
+    return store.getters.GetCurrentRouteName;
   }
 }
 }

@@ -189,7 +189,7 @@ INSERT INTO `tblBlock`
 
     Mirth Javascript:
 
-               var strInsertNewBlockSQL = "INSERT INTO `tblBlock` \
+               let strInsertNewBlockSQL = "INSERT INTO `tblBlock` \
             (`BlockID`, \
             `SpecNumFormatted`, \
             `PatientName`, \

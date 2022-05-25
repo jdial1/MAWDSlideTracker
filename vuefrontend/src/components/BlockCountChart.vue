@@ -6,7 +6,7 @@
 
 ============================================================================================ -->
 <template>
-<div class="container">
+<div>
 
   <b-table  style="opacity: .90;white-space: nowrap;" striped hover dark small borderless :items="arBlockCountTableItems" :fields="arBlockCountTableFields"></b-table>
 

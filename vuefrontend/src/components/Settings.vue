@@ -1,29 +1,17 @@
 <template>
-  <div class="container" v-if="this.$store.getters.GetValidUser" >
-    <h1>Cassette Engraver Location</h1>
-    <b-button-group class="mr-1">
-      <b-button title="Save file" v-on:click="setAllValues(setAllValue,setDirections)">
-        <b-icon icon="cloud-upload" aria-hidden="true"></b-icon>
-      </b-button>
-      <b-button title="Load Default">
-        <b-icon icon="cloud-download" aria-hidden="true"></b-icon>
-      </b-button>
-    </b-button-group>
-    <b-dropdown class="m-2" text="Engraver Locations">
-      <b-dropdown-item-button  v-for="item in engraver_locations" v-model="setAllValue" :key="item"  @click="setAllValue=item">{{ item }}</b-dropdown-item-button>
-    </b-dropdown>
-    <b-button-group class="mx-1">
-    <b-input disabled v-model="setAllValue" placeholder="Set All Location"></b-input>
-    </b-button-group>
-    <b-dropdown class="m-2" text="Direction">
-      <b-dropdown-item-button  v-for="item in directions" v-model="setDirections" :key="item"  @click="setDirections=item">{{ item }}</b-dropdown-item-button>
-    </b-dropdown>
-    <b-button-group class="mx-1">
-    <b-input disabled v-model="setDirections" placeholder="Set All Direction"></b-input>
-    </b-button-group>
 
+  <div class="container"  >
+<!--    <h1>Cassette Engraver Location</h1>-->
+    <b-button-group class="float-right">
+      <b-button   title="Save" v-on:click="SaveAllChanges()" class="active-btn">
+        <b-icon v-if="this.loading" style='color: #ffffff;' icon="arrow-clockwise" animation="spin" font-scale="1"></b-icon>
+        <b-icon v-if="!this.loading" icon="cloud-upload"></b-icon>
+        Save
+      </b-button>
+    </b-button-group>
     <br>
-    <b-table style="opacity: .90;white-space: nowrap;" striped hover dark small borderless :items="items" :fields="fields" >
+    <b-icon v-if="this.table_loading" icon="arrow-clockwise" animation="spin" font-scale="2"></b-icon>
+    <b-table v-if="!this.table_loading" style="white-space: nowrap;"   small    :items="items" :fields="fields" >
       <template v-slot:cell(old_value)="row">    <b-form-input v-model="row.item.old_value" :disabled='true'/></template>
       <template v-slot:cell(right_left_value)="row">
         <b-form-group>
@@ -50,55 +38,56 @@ export default {
   data() {
     return {
       setAllValue:'',
+      loading:false,
+      table_loading:false,
       setDirections:'',
-      engraver_locations: ['PLAZA01','MAWD01','MAWD02','CASSETTELABELS01'],
+      engraver_locations: ['PLAZA01','MAWD01','MAWD02','MAWD03','CASSETTELABELS01'],
       directions: ['  ','Left','Right'],
-      fields: [{ key: 'old_value', label: 'CoPath_Workstation_ID' },{ key: 'right_left_value', label: 'Side' },{ key: 'new_value', label: 'Assigned_Cassette_Engraver' }],
+      fields: [{ key: 'old_value', label: 'Workstation ID' },{ key: 'right_left_value', label: 'Side' },{ key: 'new_value', label: 'Cassette Engraver ID' }],
       items: []
     }
   },
-mounted() {
-  this.getValues()
-},
-methods: {
-  setAllValues(newVal_eng,newVal_dir) {
-    for (var item of this.items) {
-      if (newVal_eng.length>0){item.new_value=newVal_eng}
-      if (newVal_dir=='Right'){item.right_left_value=true}
-      else if (newVal_dir=='Left'){item.right_left_value=false}
-    }
-    this.SaveAllChanges()
+  mounted() {
+    this.getValues()
   },
-  getIndex(val){
-    return this.items.findIndex(x => x.old_value ===val).toString()
-  },
-  checkboxFlip(val){
-    this.items[this.getIndex(val)].right_left_value=!this.items[this.getIndex(val)].right_left_value;
-    console.log(val)
-  },
-  SaveAllChanges(){
-    console.log("SAVE ALL CHANGES");
-    console.log(this.items.forEach(element => console.log(element.old_value+' , '+element.right_left_value+' , '+element.new_value)));
-  },
-  getValues(){
-    axios.post(store.getters.getApiUrl + '/GetCassEngLoc', {
-      action: 'GetCassEngLoc'
-    })
-        .then(apidata => {
-          this.items = apidata.data
-          for (var item of this.items) {
-            if (item.right_left_value==1){item.right_left_value=true}
-            else if (item.right_left_value==0){item.right_left_value=false}
-          }
-          console.log(JSON.stringify(apidata.data))
-        })
-
-
-  }
-},
-  computed:{
-    currentRouteName() {
-      return this.$route.name;
+  methods: {
+    getValues(){
+      this.table_loading = true
+      axios.post(store.getters.getApiUrl + '/GetCassEngLoc', {
+        action: 'GetCassEngLoc'
+      })
+          .then(apidata => {
+            apidata.data.forEach((item)=>{item.right_left_value = (item.right_left_value) ? true : false})
+            this.items = apidata.data;
+            this.table_loading = false
+          })
+    },
+    SaveAllChanges(){
+      this.loading = true
+      axios.post(store.getters.getApiUrl + '/SetCassEngLoc', {
+        action: 'SetCassEngLoc',
+        data:this.items
+      })
+          .then(response => {
+            this.makeToast(response['data']['info'], "Saved Successfully", "success",10000,'b-toaster-top-right')
+            console.log(response)
+            this.loading = false
+          })
+          .catch((error) => {
+        console.log(error)
+        this.makeToast('Error: Network Error', "Saving Failed", "danger",10000)
+        this.loading = false
+      })
+    },
+    makeToast(content, title, variant = null,time=1500,locn='b-toaster-top-left') {
+      this.$bvToast.toast(content, {
+        title: title,
+        variant: variant,
+        solid: true,
+        autoHideDelay: time,
+        toaster: locn,
+        appendToast: true
+      })
     }
   }
 }

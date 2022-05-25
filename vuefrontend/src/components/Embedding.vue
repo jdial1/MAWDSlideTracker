@@ -8,13 +8,13 @@
 ============================================================================================ -->
 <template>
   <div class="container"  v-if="this.$store.getters.GetValidUser" >
-  <h1>Scan Block</h1>
+<!--  <h1>Embedding</h1>-->
     <br>
-  <b-card class="mx-auto" style="max-width: 68%;opacity:.90;font: normal small-caps normal 30px/1.4 'Arial';" >
+  <b-card class="mx-auto" style="max-width: 68%;opacity:.75;font: normal small-caps normal 30px/1.4 'Arial';border-radius: 15px;" >
     <b-card-text class="mb-5"></b-card-text>
     <b-card-text>
-      <b-iconstack class="mb-5 py-md-1" :variant="SetColor">
-        <b-icon stacked icon="calendar" scale="6" flip-v=true ></b-icon>
+      <b-iconstack class="mb-5 py-md-1">
+        <b-icon stacked icon="calendar" scale="6" flip-v ></b-icon>
         <b-icon stacked icon="grid3x3" scale="2.8" shift-h="-21" shift-v="21"></b-icon>
         <b-icon stacked icon="grid3x3" scale="2.8" shift-h="-21" shift-v="-21"></b-icon>
         <b-icon stacked icon="grid3x3" scale="2.8" shift-h="21"  shift-v="21"></b-icon>
@@ -50,37 +50,8 @@ export default {
   },
 
 
-  sockets: {
-      connect: function () {
-          console.log('socket connected within slide')
-      },
-      customEmit: function (data) {
-          console.log(' within slide this method was fired by the socket server. eg: io.emit("customEmit", data)')
-      },
-      stream: function(data) {
-          console.log("SOCKET STREAM EMBED")
-          this.validateScanData(data)
-      }
-  },
+
   methods: {
-    validateScanData(data){
-      if (store.state.validuser) {
-        //Depending on prefix, send to correct placeholder
-        console.log("EMBEDDED: "+this.$route.name)
-        switch(data.barcodeScanData.substring(0,4)) {
-          case 'HBLK':
-            this.blockID = data.barcodeScanData
-            if (this.$route.name =='Embedding'){this.getBlockData()};
-            break
-          default:
-            // code block
-        }
-      } else {
-        this.blockID = ''
-      }
-
-    },
-
      getBlockData() {
       axios.post(store.getters.getApiUrl + '/GetBlockData', {
       action: 'GetBlockData',
@@ -108,7 +79,7 @@ export default {
       .then(apidata => {
         console.log("SET BLOCK DATA AXIOS CALL")
         console.log(this.currentRouteName())
-        var ToastString = this.blockData.data[0].BlockID+" Status Updated to Embedded";
+        let ToastString = this.blockData.data[0].BlockID+" Status Updated to Embedded";
         this.makeToast(ToastString, "Block Status", "success",3000)
         }).catch((e) => {
           console.log("AXIOS ERROR: "+e)
@@ -141,7 +112,7 @@ export default {
   },
   computed:{
     currentRouteName() {
-      return this.$route.name;
+      return store.getters.GetCurrentRouteName;
     }
   }
 }

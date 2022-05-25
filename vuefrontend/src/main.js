@@ -3,13 +3,16 @@ import App from './App.vue'
 import store from './store'
 import axios from 'axios'
 import VueAxios from 'vue-axios'
-import { BootstrapVue, BootstrapVueIcons } from 'bootstrap-vue'
+import { BootstrapVue, BootstrapVueIcons, } from 'bootstrap-vue'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 import VueSocketIO from 'vue-socket.io'
-import SocketIO from 'socket.io'
+import * as io from 'socket.io-client';
 import VueRouter from 'vue-router'
 import routes from './routes'
+import { BVToastPlugin } from 'bootstrap-vue'
+
+Vue.use(BVToastPlugin)
 
 Vue.config.productionTip = false
 Vue.use(BootstrapVue)
@@ -17,9 +20,10 @@ Vue.use(BootstrapVueIcons)
 Vue.use(VueRouter)
 Vue.use(VueAxios, axios)
 
-var backendIP = "localhost:2082"
+let backendIP = "http://localhost:2082"
 
-var env = process.env.NODE_ENV || 'development';
+let env = process.env.NODE_ENV || 'development';
+
 
 if (env == "production"){
   backendIP = "http://10.24.4.9:2081"
@@ -33,12 +37,9 @@ let connectObj = {
   backend: backendIP
 }
 
-
- //Vue.use(VueSocketIO, connectObj, store)
-
 Vue.use(new VueSocketIO({
   debug: true,
-  connection: connectObj['local'],
+  connection:  io(connectObj.local),
   vuex: {
     store,
     actionPrefix: 'local_',
@@ -48,7 +49,7 @@ Vue.use(new VueSocketIO({
 
 Vue.use(new VueSocketIO({
   debug: true,
-  connection: connectObj['backend'],
+  connection:  io(connectObj.backend),
   vuex: {
     store,
     actionPrefix: 'backend_',
@@ -58,6 +59,7 @@ Vue.use(new VueSocketIO({
 
 
 const router = new VueRouter({ routes })
+
 
 new Vue({
   router,
