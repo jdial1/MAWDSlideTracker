@@ -279,10 +279,11 @@ async function GetBlockData (request, response) {
   await db_query(strSQL).then((res)=> {response.json(res)}).catch((e)=>(console.error(e)))
 
 }
-async function SetBlockData (request, response) {
-
-  let blockData            = request.body.blockData.data[0]
-  let {scanlocation:ScanLocation,userid,curRoute} = request.body;
+async function SetBlockData(request, response) {
+  let blockData = request.body.blockData.data[0]
+  let { userid, curRoute } = request.body;
+  console.log(JSON.stringify(blockData))
+  let ScanLocation = blockData.WorkstationID
   let TimesScanned         = (!blockData.TimesScannedAtEmbedding) ? 1: blockData.TimesScannedAtEmbedding+1
   let BlockID			   = blockData.BlockID
 

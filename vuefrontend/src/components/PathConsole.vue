@@ -3,18 +3,14 @@
 </template>
 
 <script>
-import store from '../store.js'
-import axios from 'axios'
+import store from "../store.js";
+import axios from "axios";
 
 export default {
-  name: 'PathConsole',
-  components: {
-
-  },
+  name: "PathConsole",
+  components: {},
   data() {
-    return {
-
-    }
-  }
-}
+    return {};
+  },
+};
 </script>

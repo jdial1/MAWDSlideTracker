@@ -6,55 +6,60 @@
 
 ============================================================================================ -->
 <template>
-<div>
-
-  <b-table  style="opacity: .90;white-space: nowrap;" striped hover dark small borderless :items="arBlockCountTableItems" :fields="arBlockCountTableFields"></b-table>
-
-
-</div>  <!-- /container -->
+  <div>
+    <b-table
+      style="opacity: 0.9; white-space: nowrap"
+      striped
+      hover
+      dark
+      small
+      borderless
+      :items="arBlockCountTableItems"
+      :fields="arBlockCountTableFields"
+    ></b-table>
+  </div>
+  <!-- /container -->
 </template>
-
 
 <!--components/Slides.vue -->
 <script>
-import axios from 'axios'
-import store from '../store.js'
+import axios from "axios";
+import store from "../store.js";
 
 export default {
-  name: 'blockcount', // component name
+  name: "blockcount", // component name
   props: {
     lastname: String,
     userid: String,
-    },
-    data() {
+  },
+  data() {
     return {
-        fields: store.state.blockCountTableFields,
-        items: store.state.blockCountTableItems
-    }
+      fields: store.state.blockCountTableFields,
+      items: store.state.blockCountTableItems,
+    };
   },
   created() {
-          console.log('Hello created')
-          this.LoadTableData()
+    console.log("Hello created");
+    this.LoadTableData();
   },
   methods: {
-      LoadTableData() {
-        store.dispatch('LoadBlockCountTableData').then(() => {
-        console.log('Show after promise blah')
+    LoadTableData() {
+      store.dispatch("LoadBlockCountTableData").then(() => {
+        console.log("Show after promise blah");
         // this.datacollection = store.state.objChartDataCollection
-        console.log(store.state.blockCountTableItems)
-        }) 
-      }
-
+        console.log(store.state.blockCountTableItems);
+      });
+    },
   },
-    computed: {
-        arBlockCountTableItems () {
-            return this.$store.getters.BlockCountTableItems
-        },
-        arBlockCountTableFields () {
-            return this.$store.getters.BlockCountTableFields
-        } 
-    }
-}
+  computed: {
+    arBlockCountTableItems() {
+      return this.$store.getters.BlockCountTableItems;
+    },
+    arBlockCountTableFields() {
+      return this.$store.getters.BlockCountTableFields;
+    },
+  },
+};
 </script>
 
 <style scoped>

@@ -4,7 +4,6 @@ const express = require('express')
 const app = express()
 const router = require('express').Router()
 const bodyParser = require('body-parser')
-const path = require('path');
 
 // // Socket IO import
 let http = require('http').Server(app);
@@ -72,7 +71,6 @@ app.use(function (req, res, next) {
 
 app.use( (req, res) => { //Check if requested route is in:
   const route = req.url.substring(1)
-  const socket = req.app.get("socket");
   if (!route.includes('socket.io')) {
     console.log('\n')
     console.info('Route Requested: ' + route)

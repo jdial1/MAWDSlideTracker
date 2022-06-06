@@ -11,6 +11,7 @@ const parser = new SerialPort(BarcodeScannerPort).pipe(new ReadlineParser({ deli
 const server = require("http").createServer();
 const io = require('socket.io').listen(server);
 server.listen(WebSocketPort);
+console.log("Running" );
 
 io.sockets.on('connection', (socket) => {
     console.log(socket.client.conn.server.clientsCount + " user(s) connected" );

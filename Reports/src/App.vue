@@ -62,14 +62,7 @@ return {
   datacollection: null,
   msg: `Hello profile`
 }
-},
-created() {
-  console.log('Hello created')
-  // this.SetChartData()
-  // this.GetChartData()
-},  
-mounted () {    
-  },
+}, 
 methods: {
   GetChartData (){
    store.dispatch('LoadChartDataWPromise').then(() => {

@@ -100,27 +100,17 @@ export default new Vuex.Store({
       }
     },
     SetChartDataCollectionForPieChart (state) {
-      state.objPieChartFirstRunData = FormatPieChartDataObject(0, state.blockCountTableItems)
+      state.objPieChartFirstRunData  = FormatPieChartDataObject(0, state.blockCountTableItems)
       state.objPieChartSecondRunData = FormatPieChartDataObject(1, state.blockCountTableItems)
-      state.objPieChartThirdRunData = FormatPieChartDataObject(2, state.blockCountTableItems)
+      state.objPieChartThirdRunData  = FormatPieChartDataObject(2, state.blockCountTableItems)
       state.objPieChartFourthRunData = FormatPieChartDataObject(3, state.blockCountTableItems)
-      state.objPieChartTotalData = FormatPieChartDataObject(4, state.blockCountTableItems)
+      state.objPieChartTotalData     = FormatPieChartDataObject(4, state.blockCountTableItems)
     },
     SetApiUrl (state, strAPIURL) {
       state.apiurl = strAPIURL
     }
   },
   actions: {
-    //  template for Action w Promise
-    //  ActionWPromise ({ commit }) {
-    //  return new Promise((resolve, reject) => {
-    //    setTimeout(() => {
-    //      console.log('blah')
-    //      // commit('someMutation')
-    //      resolve()
-    //    }, 1000)
-    //  })
-    //  },
     LoadChartDataWPromise ({ commit }) {
       return new Promise((resolve, reject) => {
         console.log('Hello LoadHistoData')
@@ -136,16 +126,16 @@ export default new Vuex.Store({
             commit('ClearChartLabels')
             commit('ClearChartData')
             console.log(response)
-            for (let i = 0; i < response.data.length; i++) {
+            for (const element of response.data) {
               let strXAxisNames = ''
-              if (response.data[i].WhoPrinted === null) {
+              if (element.WhoPrinted === null) {
                 strXAxisNames = 'Unknown'
               } else {
-                strXAxisNames = response.data[i].WhoPrinted
+                strXAxisNames = element.WhoPrinted
               }
               // Build Chart Data Array
               commit('PushChartLabels', strXAxisNames)
-              commit('PushChartData', response.data[i].CountOfBlockID)
+              commit('PushChartData', element.CountOfBlockID)
             } // end for
             // Set Chart Collection Object
             commit('SetChartDataCollection', 'Blocks Cut', '#f87979')
@@ -174,16 +164,16 @@ export default new Vuex.Store({
             commit('ClearChartData')
 
             console.log(response)
-            for (let i = 0; i < response.data.length; i++) {
+            for (const element of response.data) {
               let strXAxisNames = ''
-              if (response.data[i].WhoPrinted === null) {
+              if (element.WhoPrinted === null) {
                 strXAxisNames = 'Unknown'
               } else {
-                strXAxisNames = response.data[i].WhoPrinted
+                strXAxisNames = element.WhoPrinted
               }
               // Build Chart Data Array
               commit('PushChartLabels', strXAxisNames)
-              commit('PushChartData', response.data[i].CountOfBlockID)
+              commit('PushChartData', element.CountOfBlockID)
             } // end for
             // Set Chart Collection Object
             commit('SetChartDataCollection', 'Blocks Cut', '#f87979')
@@ -293,17 +283,3 @@ function FormatPieChartDataObject (intArrayIndex, arTempBlockCountTableItems) {
 
   return objPieChartDataSet
 }
-
-// Shuffle array Not Active
-/* function ShuffleArray (array) {
-  let i = 0
-  let j = 0
-  let temp = null
-
-  for (i = array.length - 1; i > 0; i -= 1) {
-    j = Math.floor(Math.random() * (i + 1))
-    temp = array[i]
-    array[i] = array[j]
-    array[j] = temp
-  }
-} */
