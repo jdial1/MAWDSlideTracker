@@ -197,10 +197,8 @@ import store from "../store.js";
 
 // define the external API URL
 const API_URLWithSlideParameters =
-  store.getters.getApiUrl + "/slidetracker/slideparameters?blockid="; //For Get Call
-const buildUrl = (blockID) => {
-  return `${API_URLWithSlideParameters}${blockID}`;
-};
+  store.getters.getApiUrl + "/slidetracker/slideparameters?blockid=";
+const buildUrl = (blockID) =>  `${API_URLWithSlideParameters}${blockID}`
 export default {
   name: "slides", // component name
   props: {

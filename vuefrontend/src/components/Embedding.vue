@@ -129,8 +129,8 @@ export default {
             console.log('setting block data')
             return blockData.data[0]
         }
-        return null
       }
+      return null
     }
   },
 }
