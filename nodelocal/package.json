@@ -10,9 +10,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@serialport/parser-readline": "^10.3.0",
-    "dotenv": "^6.2.0",
-    "serialport": "^8.0.8",
-    "socket.io": "^2.2.0"
+    "@serialport/parser-readline": "*",
+    "dotenv": "*",
+    "serialport": "*",
+    "socket.io": "^2.4.1"
   }
 }

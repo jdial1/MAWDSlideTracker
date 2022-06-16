@@ -1,24 +1,25 @@
 <template>
   <div class="container">
     <b-button-group class="float-right">
-      <b-button title="Save" v-on:click="SaveAllChanges()" class="active-btn">
+      <b-button title="Save" v-on:click="SaveAllChanges()" style="background-color: #8ecae6 !important" >
         <b-icon
           v-if="this.loading"
-          style="color: #ffffff"
+          style="color: #8ecae6"
           icon="arrow-clockwise"
           animation="spin"
-          font-scale="1"
+          font-scale="2"
         ></b-icon>
-        <b-icon v-if="!this.loading" icon="cloud-upload"></b-icon>
+        <b-icon v-if="!this.loading" icon="cloud-upload" ></b-icon>
         Save
       </b-button>
     </b-button-group>
     <br />
     <b-icon
       v-if="this.table_loading"
+      style="color: #8ecae6"
       icon="arrow-clockwise"
       animation="spin"
-      font-scale="2"
+      font-scale="3"
     ></b-icon>
     <b-table
       v-if="!this.table_loading"

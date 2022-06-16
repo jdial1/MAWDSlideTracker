@@ -11,6 +11,7 @@ export default new Vuex.Store({
   state: {
     defaultUsername: "Scan Badge",
     username: "Scan Badge",
+    printName: '',
     validuser: false,
     currentRouteName: "Home",
     SlideDistributionID: "",
@@ -48,6 +49,7 @@ export default new Vuex.Store({
       this._vm.$socket.emit("version", state.frontendVersion);
     },
     local_stream: function (state, context) {
+      state.LocalSocketConn = true;
       this.dispatch('validateScanData', { state, context })
     },
     backend_disconnect: (state) => (state.BackendSocketConn = false),
@@ -63,6 +65,7 @@ export default new Vuex.Store({
     SetbackendVersion: (state, strTemp) => (state.backendVersion = strTemp),
     SetLocalVersion: (state, strTemp) => (state.localVersion = strTemp),
     SetbackendConn: (state, strTemp) => (state.backendConn = strTemp),
+    SetPrintName: (state, strTemp) => (state.printName = strTemp),
     ClearBlockCountTableItems: (state) => (state.blockCountTableItems = []),
     PushBlockCountTableItems: (state, objTmp) => state.blockCountTableItems.push(objTmp),
     production: (state, strTemp) => (state.production = strTemp),
@@ -78,6 +81,7 @@ export default new Vuex.Store({
     BlockCountTableItems: (state) => state.blockCountTableItems,
     GetValidUser: (state) => state.validuser,
     GetUsername: (state) => state.username,
+    GetPrintName: (state) => state.printName,
     GetDefaultUsername: (state) => state.defaultUsername,
     getBackendTestMode: (state) => state.nodeBackendTestMode,
     GetBlockData: (state) => state.blockData,
@@ -274,10 +278,11 @@ export default new Vuex.Store({
         .then((userinfodata) => {
           let userinfo = userinfodata.data;
           this.commit("SetUserName", userinfo[0].username);
+          this.commit("SetPrintName", userinfo[0].printname);
           if (this.getters.GetUsername.length) {
             this.commit("SetValidUser", true);
             this.commit("SetSlideQueuePath", data.slideQueuePath);
-            this.commit("SetStationName", data.stationName);
+            this.commit("SetStationName", data.StationName);
           }
         });
     },

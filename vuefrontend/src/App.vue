@@ -218,14 +218,14 @@
         "
       >
         <template #button-content class="badge-scan rounded-pill">
-          <div :style="getInputColor(UserName)">{{ UserName }}</div>
+          <div :style="getInputColor(UserName)">{{ UserName}}</div>
         </template>
         <b-dropdown-item to="/caseinquiry">Search</b-dropdown-item>
         <b-dropdown-item to="/settings">Settings</b-dropdown-item>
         <b-dropdown-item v-if="ValidUser" @click="logout()"
         >Log Out
         </b-dropdown-item>
-        <b-dropdown-item class="m-auto" disabled></b-dropdown-item>
+        <b-dropdown-item class="m-auto" disabled>{{printName}} </b-dropdown-item>
         <b-dropdown-item disabled>
           Frontend<span
             v-if="FEVersion"
@@ -266,13 +266,10 @@
               text-shadow: none !important;
               font-size: smaller;
             "
-        >&nbsp;v {{ BEVersion }}(TestMode:{{ BETestMode }})</span
-        >&nbsp;
-          <b-icon-check2-circle
-              v-if="BEStatus"
-              variant="success"
-          ></b-icon-check2-circle
-          >
+        >&nbsp;v {{ BEVersion }}(TestMode:{{ BETestMode }})
+        </span>
+        &nbsp;
+          <b-icon-check2-circle v-if="BEStatus" variant="success"></b-icon-check2-circle>
           <b-icon-x-circle v-if="!BEStatus" variant="danger"></b-icon-x-circle>
         </b-dropdown-item>
       </b-nav-item-dropdown>
@@ -312,6 +309,7 @@ export default {
     logout() {
       store.commit("SetValidUser", false);
       store.commit("SetUserName", this.DefaultUserName);
+      store.commit("SetPrintName", '');
       this.scannedbadgeinput = this.DefaultUserName;
       this.makeToast("Logging out user", "Logged Out", "warning");
     },
@@ -328,15 +326,31 @@ export default {
           }
       if (text !== this.defaultbadgeinput && /\d/.test(text) && text.length > 0)
         {
-        results["background-color"]='#ffc107';
+        results["background-color"]='#8ecae6';
         results["color"]="white";
         return results
         }
       if (text === this.defaultbadgeinput){
-        return {"background-color": "#dc3545", "color":"white"};}
-      results["background-color"]='#ffc107';
+        return {"background-color": "#9e363a", "color":"white"};}
+      results["background-color"]='#8ecae6';
       results["color"]="white";
       return results
+    },
+    makeToast(
+      content,
+      title,
+      variant = null,
+      time = 1500,
+      locn = "b-toaster-top-left"
+    ) {
+      this.$bvToast.toast(content, {
+        title: title,
+        variant: variant,
+        solid: true,
+        autoHideDelay: time,
+        toaster: locn,
+        appendToast: true,
+      });
     },
   },
   computed: {
@@ -356,6 +370,7 @@ export default {
       BEStatus: "GetBackendSocketStatus",
       ValidUser: "GetValidUser",
       UserName: "GetUsername",
+      printName: "GetPrintName",
       CurrentRoute: "GetCurrentRouteName",
       BETestMode: "getBackendTestMode",
     }),

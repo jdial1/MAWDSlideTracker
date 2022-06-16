@@ -6,8 +6,8 @@ import VueAxios from 'vue-axios'
 import { BootstrapVue, BootstrapVueIcons, BVToastPlugin } from 'bootstrap-vue'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
-import VueSocketIO from 'vue-socket.io'
 import * as io from 'socket.io-client';
+import VueSocketIO from 'vue-socket.io'
 import VueRouter from 'vue-router'
 import routes from './routes'
 
@@ -37,7 +37,7 @@ let connectObj = {
 Vue.use(
   new VueSocketIO({
     debug: true,
-    connection: io(connectObj.local),
+    connection: connectObj.local,
     vuex: {
       store,
       actionPrefix: "local_",
@@ -49,7 +49,7 @@ Vue.use(
 Vue.use(
   new VueSocketIO({
     debug: true,
-    connection: io(connectObj.backend),
+    connection: connectObj.backend,
     vuex: {
       store,
       actionPrefix: "backend_",

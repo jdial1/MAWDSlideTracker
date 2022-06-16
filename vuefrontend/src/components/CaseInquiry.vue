@@ -27,7 +27,7 @@
           <div v-if="this.loading">
             <b-icon
               v-if="this.loading"
-              style="color: #ffffff"
+              style="color: #FFFDD0"
               icon="arrow-clockwise"
               animation="spin"
               font-scale="1"
