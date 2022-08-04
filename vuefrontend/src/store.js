@@ -14,9 +14,10 @@ export default new Vuex.Store({
     printName: '',
     validuser: false,
     currentRouteName: "Home",
-    SlideDistributionID: "",
-    SlideTrayID: "",
-    SlideID: "",
+    slideDistributionID: "",
+    slideTrayID: "",
+    slideID: "",
+    slidesData: [],
     blockColor: "",
     blockData: [],
     blockCountTableFields: ["location", "block_count"],
@@ -37,7 +38,7 @@ export default new Vuex.Store({
     frontendVersion: version,
 
     // Local Variables
-    LocalSocketConn: false,
+    localSocketConn: false,
     localVersion: "",
     localComPort: "",
     stationName: "",
@@ -49,7 +50,7 @@ export default new Vuex.Store({
       this._vm.$socket.emit("version", state.frontendVersion);
     },
     local_stream: function (state, context) {
-      state.LocalSocketConn = true;
+      state.localSocketConn = true;
       this.dispatch('validateScanData', { state, context })
     },
     backend_disconnect: (state) => (state.BackendSocketConn = false),
@@ -60,7 +61,8 @@ export default new Vuex.Store({
     SetValidUser: (state, blTemp) => (state.validuser = blTemp),
     SetStationName: (state, strTemp) => (state.stationName = strTemp),
     SetSlideQueuePath: (state, strTemp) => (state.slideQueuePath = strTemp),
-    SetLocalSocketConn: (state, strTemp) => (state.LocalSocketConn = strTemp),
+    SetSlidesData: (state, strTemp) => (state.slidesData = strTemp),
+    SetLocalSocketConn: (state, strTemp) => (state.localSocketConn = strTemp),
     SetBackendSocketConn: (state, strTemp) => (state.BackendSocketConn = strTemp),
     SetbackendVersion: (state, strTemp) => (state.backendVersion = strTemp),
     SetLocalVersion: (state, strTemp) => (state.localVersion = strTemp),
@@ -86,6 +88,7 @@ export default new Vuex.Store({
     getBackendTestMode: (state) => state.nodeBackendTestMode,
     GetBlockData: (state) => state.blockData,
     GetStationName: (state) => state.stationName,
+    GetSlidesData: (state) => state.slidesData,
     GetCurrentRouteName: (state) => state.currentRouteName,
     GetnodeBackendTestMode: (state) => state.nodeBackendTestMode,
     GetvueFrontendTestMode: (state) => state.vueFrontendTestMode,
@@ -93,12 +96,12 @@ export default new Vuex.Store({
     GetFEVersion: (state) => state.frontendVersion,
     GetLocalVersion: (state) => state.localVersion,
     GetSlideQueuePath: (state) => state.slideQueuePath,
-    GetSlideDistributionID: (state) => state.SlideDistributionID,
-    GetLocalSocketStatus: (state) => state.LocalSocketConn,
+    GetSlideDistributionID: (state) => state.slideDistributionID,
+    GetLocalSocketStatus: (state) => state.localSocketConn,
     GetBackendSocketStatus: (state) => state.BackendSocketConn,
-    GetSlideID: (state) => state.SlideID,
+    GetSlideID: (state) => state.slideID,
     GetBackendStatus: (state) => state.backendConn,
-    GetSlideTrayID: (state) => state.SlideTrayID,
+    GetSlideTrayID: (state) => state.slideTrayID,
     GetProduction: (state) => state.production,
     getApiUrl: (state) => {
       if (state.nodeBackendTestMode) {
@@ -208,8 +211,7 @@ export default new Vuex.Store({
       // ---Slide Printing---
       else if (type_route === "HBLK_SlidePrinting") {
         console.log("HBLK - SlidePrinting");
-        let blockID = scanData.barcodeScanData;
-        this.dispatch("pullSlides", { blockID: blockID });
+        this.dispatch("pullSlides", {state, data: data.context.barcodeScanData });
 
       
 
@@ -236,36 +238,42 @@ export default new Vuex.Store({
       }
     },
 
-    pullSlides() {
+    pullSlides(state, data) {
+      let blockID = data.data
       console.log("start pull slides");
-      let blockID = this.blockID;
+      console.log(data)
       if (!blockID) {
         alert("please enter block ID to pull up slides");
         return;
       }
       this.loading = true;
 
-      //uses fetch as opposed to Axios
-      const API_URLWithSlideParameters =
-        this.getters.getApiUrl + "/slidetracker/slideparameters?blockid="; //For Get Call
-      fetch(`${API_URLWithSlideParameters}${blockID}`)
-        //.then(response => response.json())
-        .then((response) => {
-          return response.json();
+      axios.post(this.getters.getApiUrl + "/pullSlides", {
+          blockID:blockID
         })
         .then((data) => {
+          console.log(data)
           this.loading = false;
           this.error_message = "";
           console.log(this.currentRouteName);
-          this.slides = data;
+          this.slides = data.data;
+          this.commit("SetSlidesData",this.slides)
           this.formstatus = "readytoprint";
-          document.getElementById("InputBlockID").disabled = true;
           this.formstatuslabel = "Print Slides";
         })
         .catch((e) => {
           console.log(e);
         });
-      this.GetPartBlockCurrentAndTotals();
+      
+      axios.post(this.getters.getApiUrl + "/GetPartBlockCurrentAndTotals", {
+        blockID:blockID
+      })
+      .then((data) => {
+        console.log(data)
+      })
+      .catch((e) => {
+        console.log(e);
+      });
     },
     scanBadge( state,badge_data) {
       const { badge_id: userid, scan_data: data } = badge_data;
@@ -273,7 +281,7 @@ export default new Vuex.Store({
       console.log(state)
       axios
         .post(this.getters.getApiUrl + "/getUserInfo", {
-          userid: userid,
+          userid: userid
         })
         .then((userinfodata) => {
           let userinfo = userinfodata.data;

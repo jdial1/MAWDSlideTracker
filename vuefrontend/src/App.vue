@@ -132,11 +132,11 @@
               margin: auto;
             "
           >
-            <b-icon flip-v icon="bookmark" shift-v="-1" stacked></b-icon>
+            <b-icon flip-v icon="file" shift-v="-2" scale="1" stacked></b-icon>
             <b-icon
-                icon="chat-left-text"
-                scale=".7"
-                shift-v="4"
+                icon="justify"
+                scale=".8"
+                shift-v="2"
                 stacked
             ></b-icon>
           </b-iconstack>

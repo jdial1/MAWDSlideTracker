@@ -1,3 +1,6 @@
+require('console-info');
+require('console-warn');
+require('console-error');
 
 let mysql = require('mysql')
 let mysqlConfig = require('../mysqlConfig')
@@ -42,17 +45,28 @@ function CheckLastQueryCache(queryName,waitTime=15){
   console.warn(queryName+" DB Data")
 }
 
-function  db_query(query) {
+function db_query(query) {
   return new Promise((resolve, reject) => {
-    let now = Date.now()
-    let sql_query = '/* Slide Tracker API*/ '+query
-    console.log("SQL QUERY: "+sql_query)
     let con = mysql.createConnection(mysqlConfig)
-    con.query(sql_query, function (err, result) {
-      if (err) {reject(err);}
-      resolve(result)
-      con.end()
-    })
+    try {
+      let sql_query = '/* Slide Tracker API*/ ' + query
+      console.log("SQL QUERY: " + sql_query)
+      con.query(sql_query, function (err, result) {
+        if (err) {
+          console.log(err)
+          reject(err);
+        }
+        resolve(result)
+      })
+    }
+    catch (error){
+      console.error("SQL QUERY FAILED: " + sql_query+' : '+error)
+    }
+    finally {
+      if (con) {
+        con.end()
+      }
+    }
   })
 }
 
@@ -331,16 +345,20 @@ async function getPartBlockCurrentAndTotals (request, response) {
         where SpecNumFormatted = '${strAccessionId}' 
         order by PartDesignator desc LIMIT 1;`
   var strSQL = strSQLTotalBlocks + strSQLTotalParts
-  var result = await db_query(strSQL).then((res)=>res).catch((e)=>(console.error(e)))
-  let strTotalBlocks = result[0][0].BlockDesignator
-  let strTotalParts = result[1][0].PartDesignator
-  let jsonResult = {
-    currentblock: strCurrentBlock,
-    currentpart: strCurrentPart,
-    totalblocks: strTotalBlocks,
-    totalparts: strTotalParts
-  }
-  response.json(jsonResult)
+  await db_query(strSQL).then((result) => { 
+    let strTotalBlocks = result[0][0].BlockDesignator
+    let strTotalParts = result[1][0].PartDesignator
+    let jsonResult = {
+      currentblock: strCurrentBlock,
+      currentpart: strCurrentPart,
+      totalblocks: strTotalBlocks,
+      totalparts: strTotalParts
+    }
+    response.json(jsonResult)
+  })
+    .catch((e) => (console.error(e)))
+    response.send('error')
+
 }
 async function updateSlideToPrint (request, response) {
   const {slideId:strSlideID, toPrintStatus:blToPrintStatus} = request.body
@@ -355,20 +373,31 @@ async function updateSlideToPrint (request, response) {
 }
 async function pullSlides (request, response) {
   let strBlockID = request.body.blockID
-  var strSQL = `
-        SELECT ts.AccessionID,ts.PartDesignator,ts.BlockDesignator,ts.Patient,ts.StainLabel,
-        ts.ToBePrinted,ts.SlideInst,ts.slidecount,ts.StainOrderDate,ts.SiteLabel,ts.SlideID,ts.Status FROM   tblSlides ts
-        WHERE  (( ( tblSlides.BlockID ) = '${strBlockID}' )); `
-  var result = await db_query(strSQL).then(res => res).catch((e)=>(console.error(e)))
-  if ('error' in result) {throw result['error']}
-  Object.keys(result).forEach(function (key) {
-    let row = result[key]
-    row.StainOrderDate = dateFormat(row.StainOrderDate, 'shortDate')
-    if (row.OrderingPath === 'null') {
-      row.OrderingPath = ''
-    }
-  })
-  response.json(result)
+  console.log(request.body)
+  if (strBlockID == 'undefined') response.send('error');
+  else {
+    var strSQL = `
+          SELECT ts.AccessionID,ts.PartDesignator,ts.BlockDesignator,ts.Patient,ts.StainLabel,
+          ts.ToBePrinted,ts.SlideInst,ts.slidecount,ts.StainOrderDate,ts.SiteLabel,ts.SlideID,ts.Status FROM   tblSlides ts
+          WHERE  (( ( ts.BlockID ) = '${strBlockID}' )); `
+    await db_query(strSQL)
+      .then((result) => {
+        if (result) {
+          console.log(result)
+          if ('error' in result) {
+            response.send(result['error'])
+          }
+          Object.keys(result).forEach(function (key) {
+            let row = result[key]
+            row.StainOrderDate = dateFormat(row.StainOrderDate, 'shortDate')
+            if (row.OrderingPath === 'null') {
+              row.OrderingPath = ''
+            }
+          })
+          response.json(result)
+        }
+      }).catch((e) => (console.error(e)))
+  }
 }
 
 async function histoData (request, response) {
