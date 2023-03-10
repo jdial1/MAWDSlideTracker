@@ -33,7 +33,7 @@
               font-scale="1"
             ></b-icon>
           </div>
-          <div v-if="!this.loading"><b-icon icon="search"></b-icon> Search</div>
+          <div v-if="!this.loading"><b-icon icon="search" style="color:#dfe5e8 !important"></b-icon> Search</div>
         </b-button>
 
         <b-form-group style="margin: 5px">

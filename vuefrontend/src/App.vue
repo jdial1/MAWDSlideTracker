@@ -211,14 +211,17 @@
           no-caret
           right
           style="
-          max-width: 10rem;
-          margin-left: auto;
-          margin-right: 2rem;
-          box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.5);
-        "
+          max-width:200px;
+          margin-left: 20%;
+          margin-right: -16px;
+          margin-top: -8px;
+          margin-bottom: -8px;
+          padding-right: 20px;
+          padding-left: 50px"
       >
         <template #button-content class="badge-scan rounded-pill">
-          <div :style="getInputColor(UserName)">{{ UserName}}</div>
+          <div :style="getInputColor(UserName)">{{ UserName}}
+            </div>
         </template>
         <b-dropdown-item to="/caseinquiry">Search</b-dropdown-item>
         <b-dropdown-item to="/settings">Settings</b-dropdown-item>

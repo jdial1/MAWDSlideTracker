@@ -6,7 +6,7 @@ import VueAxios from 'vue-axios'
 import { BootstrapVue, BootstrapVueIcons, BVToastPlugin } from 'bootstrap-vue'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
-import * as io from 'socket.io-client';
+// import * as io from 'socket.io-client';
 import VueSocketIO from 'vue-socket.io'
 import VueRouter from 'vue-router'
 import routes from './routes'

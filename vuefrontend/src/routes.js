@@ -1,31 +1,39 @@
-import Home from "./components/Home.vue";
-import Embedding from "./components/Embedding.vue";
-import SlideDistribution from "./components/SlideDistribution.vue";
-import SlidePrinting from "./components/SlidePrinting.vue";
-import Settings from "./components/Settings.vue";
-import CaseInquiry from "./components/CaseInquiry.vue";
-
 const routes = [
-  { path: "/", component: Home, name: "home", props: true },
-  { path: "/embedding", component: Embedding, name: "Embedding", props: true },
   {
-    path: "/slideprinting",
-    component: SlidePrinting,
-    name: "SlidePrinting",
-    props: true,
+    path: '/',
+    name: 'home',
+    component: () => import('./components/Home.vue'),
+    props: true
   },
   {
-    path: "/slidedistribution",
-    component: SlideDistribution,
-    name: "SlideDistribution",
-    props: true,
+    path: '/embedding',
+    name: 'Embedding',
+    component: () => import('./components/Embedding.vue'),
+    props: true
   },
-  { path: "/settings", component: Settings, name: "Settings", props: true },
   {
-    path: "/caseinquiry",
-    component: CaseInquiry,
-    name: "CaseInquiry",
-    props: true,
+    path: '/slideprinting',
+    name: 'SlidePrinting',
+    component: () => import('./components/SlidePrinting.vue'),
+    props: true
+  },
+  {
+    path: '/slidedistribution',
+    name: 'SlideDistribution',
+    component: () => import('./components/SlideDistribution.vue'),
+    props: true
+  },
+  {
+    path: '/settings',
+    name: 'Settings',
+    component: () => import('./components/Settings.vue'),
+    props: true
+  },
+  {
+    path: '/caseinquiry',
+    name: 'CaseInquiry',
+    component: () => import('./components/CaseInquiry.vue'),
+    props: true
   }
 ];
 
