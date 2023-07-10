@@ -28,19 +28,16 @@ body {
   margin: 0;
   font-family: Roboto, sans-serif;
 }
-.b-table,
-.b-table:hover {
-  border-radius: 15px !important;
-  border-width: 5px !important;
-  /* border-style: solid !important; */
-  /* border-color: var(--primary_col) !important; */
-  background-color: var(--primary_col);
-  color: var(--secondary_col) !important;
-  padding-top: 1%;
-  margin: 0 auto;
-  float: none;
-  font-size: 15px;
-}
+ .b-table , .table {
+  background-color: #eef7fb;
+  opacity: 0.9; 
+  border-spacing: 0;
+  border-collapse: collapse;
+  border-style: hidden;
+  width:100%;
+  max-width: 100%;
+} 
+
 .table td {
   max-width: 150px;
 }
@@ -48,12 +45,23 @@ body {
 .navbar-brand {
   padding-right: 15px;
 }
-.btn {
-  background-color: var(--active_nav_button) !important;
+
+.wrapper {
+  overflow: auto;
   border-radius: 15px;
-  border-color: var(--nav_bar_bg) !important;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+  border: 2px solid #1e4960;
+  background-color: #1e4960;
 }
+
+
+.btn {
+  border-radius: 15px !important;
+  background-color: #f9fafd;
+  color: #2f353c !important;
+  opacity: 0.9; 
+  border: 2px solid #0f3b52;
+}
+
 .btn-toolbar {
   background-color: var(--nav_bar_bg) !important;
   border-radius: 15px;
@@ -80,10 +88,7 @@ body {
   background-color: var(--active_nav_button_bg) !important;
   color: var(--active_nav_button) !important;
 }
-.dropdown-menu {
-  /* color: #FFFDD0; */
-  background-color: var(--nav_button_bg);
-}
+
 
 h1 {
   color: #FFFDD0;
@@ -97,14 +102,13 @@ h1 {
 }
 .dropdown,
 .dropdown-toggle {
+  background-color: var(--nav_button_bg);
+  margin-left: auto;
   text-transform: capitalize;
   display: block;
-  width: 100%;
   height: 100%;
   border-radius: 15px;
-  font-family: "Avenir", Helvetica, Arial, sans-serif;
   font-size: 1.25rem;
-  /* color: #FFFDD0 !important; */
 }
 
 .custom-control-input:checked .custom-control-label::before {
@@ -121,13 +125,13 @@ h1 {
   color: #FFFDD0;
 }
 
- .table th, .table td, .table tr {
+ /* .table th, .table td, .table tr {
   padding-top: 1rem;
   vertical-align: top;
   border-bottom: 1px solid #fffdd0 !important;
   border-top: 0px !important;
 
-}
+} */
 
 
 .b-iconstack {
@@ -147,6 +151,7 @@ img {
   scale: 0.8;
   height: 2rem;
 }
+
 .progress-bar {
   margin: 5px 2px;
   padding:5px;
@@ -157,7 +162,23 @@ img {
   color: var(--secondary_col) !important;
   background-color: var(--primary_col) !important;
   height: 5rem;
-  
+}
+
+.btn:not(:disabled):not(.disabled) {
+  background-color: var(--secondary_col) !important;
+  color: var(--primary_col) !important;
+}
+
+.btn {
+  padding: 15px;
+  background-color: var(--primary_col) !important;
+  color: var(--secondary_col) !important;
+}
+
+.btn-group > .btn{
+  padding: 15px;
+  background-color: var(--primary_col) !important;
+  color: var(--secondary_col) !important;
 }
 
 .progress-bar h3 {

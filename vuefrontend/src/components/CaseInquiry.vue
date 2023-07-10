@@ -1,85 +1,46 @@
-<!-- ===========================================================================================
-
-    File: CaseInquiry.vue
-
-    Authors: Justin Dial
-
-    Description: This is the component for handling Case Querying
-============================================================================================ -->
-
 <template>
-  <div class="justify-content-center container">
-    <b-button-toolbar style="width: 50%; margin: auto">
-      <b-input-group style="width: 100%">
-        <b-input
-          style="margin: 5px; padding: 5px 5px"
-          id="InputCaseNo"
-          v-model="strCaseNo"
-          placeholder="Input Case No: ie D19-99999"
-          @keyup.enter="EnterKeyTrigger"
-        />
-        <b-button
-          style="margin: 5px; padding: 5px 5px"
-          title="Save"
-          v-on:click="LoadTableData()"
-          ref="btnLoadTableData"
-        >
-          <div v-if="this.loading">
-            <b-icon
-              v-if="this.loading"
-              style="color: #FFFDD0"
-              icon="arrow-clockwise"
-              animation="spin"
-              font-scale="1"
-            ></b-icon>
+  <div class="container" v-if="$store.getters.GetValidUser">
+    <b-button-toolbar key-nav pills
+      style="border-radius: 15px; opacity: 0.9; border: 2px solid #ccc; background-color: #eef7fb !important">
+      <b-input v-model="strCaseNo" placeholder="Input Case No" @keyup.enter="EnterKeyTrigger" class="m-2"
+        style="max-width:75%;" />
+      <b-button pill class="ml-3" @click="LoadTableData" ref="btnLoadTableData" variant="dark">
+        <div v-if="loading">
+          <b-icon disabled icon="arrow-clockwise" animation="spin" font-scale="1" />
+        </div>
+        <div v-else>
+          <b-icon icon="search" /> Search
+        </div>
+      </b-button>
+      <b-form-group class="m-0" v-if="!loading" pill variant="dark">
+        <b-dropdown right text="Settings">
+          <template #button-content>
+            <b-icon icon="gear" />
+          </template>
+          <div class="d-flex justify-content-center">
+            <b-checkbox v-model="exactMatch" size="md" switch /> Exact Match
           </div>
-          <div v-if="!this.loading"><b-icon icon="search" style="color:#dfe5e8 !important"></b-icon> Search</div>
-        </b-button>
-
-        <b-form-group style="margin: 5px">
-          <b-dropdown right text="Settings">
-            <template #button-content>
-              <b-icon icon="gear"></b-icon>
-            </template>
-            <div style="display: flex; justify-content: center">
-              <b-checkbox size="md" v-model="exactMatch" switch></b-checkbox>
-              Exact Match
-            </div>
-            <div style="display: flex; justify-content: center">
-              <b-checkbox
-                :disabled="this.AdminInputPassword !== this.AdminPass"
-                size="md"
-                v-model="materialAudit"
-                switch
-              ></b-checkbox
-              >Material Audit
-            </div>
-            <b-input
-              style="max-width: 150px; margin: 5px; padding: 5px 5px"
-              class="mx-auto"
-              id="AdminInputPassword"
-              v-model="AdminInputPassword"
-              placeholder="Admin Code"
-            />
-          </b-dropdown>
-        </b-form-group>
-      </b-input-group>
+          <div class="d-flex justify-content-center">
+            <b-checkbox v-model="materialAudit" :disabled="AdminInputPassword !== AdminPass" size="md" switch />
+            Material Audit
+          </div>
+          <b-input v-model="AdminInputPassword" id="AdminInputPassword" placeholder="Admin Code" class="mx-auto"
+            style="max-width: 150px" />
+        </b-dropdown>
+      </b-form-group>
     </b-button-toolbar>
     <br />
-    <b-table 
-      v-if="this.queryResponse && this.queryData"
-      striped
-      small
-      borderless
-      :items="queryData"
-      :fields="fieldVals"
-      style="font-size: 14px;"
-    ></b-table>
-      <div v-if="this.queryResponse && !this.queryData.length">
-   <h3 style="color:red;background-color:black">No Data Found</h3>
-  </div>
+    <b-table v-if="queryResponse && queryData && queryData.length > 0" :items="queryData" :fields="fieldVals" small
+      borderless striped hover />
+    <div v-else-if="queryResponse && (!queryData || queryData.length === 0)">
+      <h3
+        style="color: #0f3b52; background-color: black;border-radius: 15px; opacity: 0.9; border: 2px solid #0f3b52; background-color: #eef7fb !important;">
+        No Data Found</h3>
+    </div>
   </div>
 </template>
+
+
 <script>
 import axios from "axios";
 import store from "../store.js";
@@ -94,7 +55,7 @@ export default {
       materialAudit: false,
       queryData: [],
       loading: false,
-      queryResponse:false,
+      queryResponse: false,
       AdminInputPassword: "",
       AdminPass: "HISTO001!",
     };
@@ -120,6 +81,7 @@ export default {
           materialAudit: this.materialAudit,
         })
         .then((apidata) => {
+          this.loading = false;
           let temp = {};
           temp = apidata.data;
           console.log(JSON.stringify(temp));
@@ -192,7 +154,7 @@ export default {
       });
     },
   },
-  mounted() {},
+  mounted() { },
   computed: {
     currentRouteName() {
       return store.getters.GetCurrentRouteName;

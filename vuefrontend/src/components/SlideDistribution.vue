@@ -1,72 +1,55 @@
-// Slide Distribution.vue
-
 <template>
-  <div class="container" v-if="this.$store.getters.GetValidUser">
-    <!--  <h1>Slide Distribution</h1>-->
-    <b-button-toolbar key-nav pills style="border-radius: 15px">
-      <b-button
-        :model="currentslidetray"
-        :style="getInputColor(currentslidetray)"
-        style="margin: auto"
-        >{{ currentslidetray }}
+  <div class="container" v-if="$store.getters.GetValidUser">
+    <b-button-toolbar key-nav pills
+      style="border-radius: 15px; opacity: 0.9; border: 2px solid #ccc; background-color: #eef7fb !important">
+      <b-button pill :variant="getInputColor(currentslidetray)" class="text-white" disabled>
+        {{ currentslidetray }}
       </b-button>
-      <b-button style="margin: 5px 15px 5px 15px; padding: 0"
-        >Slide Count:
-        <h3 style="font: 500 25px ubuntu; color: #e0dfdc">
-          {{ strInTraySlideCount }}
-        </h3></b-button
-      >
-      <b-button style="margin: 5px 15px 5px 15px; padding: 0"
-        >Block Count:
-        <h3 style="font: 500 25px ubuntu; color: #e0dfdc">
-          {{ strInTrayBlockCount }}
-        </h3></b-button
-      >
-      <b-button class="m-auto"
-        ><span>{{ formstatuslabel }}</span></b-button
-      >
-      <b-button class="m-auto" @click="Cancel()"><span>Cancel</span></b-button>
-
-      <b-form-radio-group
-        class="m-auto p-sm-1"
-        id="rdSlideTrayBehavior"
-        v-model="rdSlideTrayBehaviorSelected"
-        :options="rdSlideTrayBehaviorOptions"
-        buttons
-        name="radios-btn-default"
-      >
-      </b-form-radio-group>
+      <b-button pill class="ml-3" variant="dark" disabled>
+        Slide Count:
+        <b-badge variant="primary">{{ strInTraySlideCount }}</b-badge>
+      </b-button>
+      <b-button pill class="ml-3" variant="dark" disabled>
+        Block Count:
+        <b-badge variant="primary">{{ strInTrayBlockCount }}</b-badge>
+      </b-button>
+      <b-button pill class="ml-auto" variant="dark">
+        {{ formstatuslabel }}
+      </b-button>
+      <b-button pill variant="dark" @click="Cancel()">
+        Cancel
+      </b-button>
+      <b-form-radio-group pill class="ml-auto" id="rdSlideTrayBehavior" v-model="rdSlideTrayBehaviorSelected"
+        :options="rdSlideTrayBehaviorOptions" buttons name="radios-btn-default" />
     </b-button-toolbar>
     <br />
-    <div class="col-xs-6" v-if="this.slides.length > 0">
-      <b-table
-        style="opacity: 0.9; white-space: nowrap"
-        striped
-        hover
-        small
-        borderless
-        :items="slides"
-        :fields="fields"
-      ></b-table>
-      <blockcount> </blockcount>
+    <div v-if="slides.length > 0">
+      <b-table striped hover small borderless :items="slides" :fields="fields" />
+      <blockcount />
     </div>
   </div>
-  <!-- /container -->
 </template>
 
 <script>
 import store from "../store.js";
 import axios from "axios";
 import blockcount from "./BlockCountChart.vue";
+import { BButtonToolbar, BButton, BBadge, BTable, BFormRadioGroup } from 'bootstrap-vue'
 
 export default {
   name: "SlideDistribution",
   components: {
     blockcount,
+    BButtonToolbar,
+    BButton,
+    BBadge,
+    BTable,
+    BFormRadioGroup
   },
   data() {
     return {
       formstatus: "loadslides",
+      routeEnabled: false,
       formstatuslabel: "Scan",
       currentslidetray: "No Slide Tray Active",
       defaultcurrentslidetray: "No Slide Tray Active",
@@ -90,11 +73,11 @@ export default {
       rdSlideTrayBehaviorOptions: [
         { text: "New", value: "NewSlideTray", disabled: false },
         { text: "Edit", value: "EditExisting", disabled: false },
-      ],
+      ]
     };
   },
   mounted() {
-    this.LoadTableData();
+    if (routeEnabled) this.LoadTableData();
   },
   methods: {
     ScanSlide(strSlideID) {
@@ -353,3 +336,15 @@ export default {
   },
 };
 </script>
+
+
+<style scoped>
+/* Material Design theme */
+.b-table {
+  font-family: 'Roboto', sans-serif;
+}
+
+.bg-primary {
+  background-color: #2196f3 !important;
+}
+</style>

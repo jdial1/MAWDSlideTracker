@@ -318,18 +318,22 @@ async function SetBlockData(request, response) {
   await db_query(strSQL).then(response.send('OK')).catch((e)=>(console.error(e)))
 }
 async function GetCassEngLoc (request, response) {
-  var strSQL = `select old_value,new_value,right_left_value from engraver_lookup;`
-  await db_query(strSQL).then((res)=>response.json(res)).catch((e)=>(console.error(e)))
+  var strSQL = `select old_value,new_value,right_left_value,updt_dt_tm from engraver_lookup;`
+  await db_query(strSQL)
+    .then((res) => response.json(res))
+    .catch((e) => (console.error(e)))
 }
 
 async function SetCassEngLoc (request, response) {
   request['body']['data'].forEach((el)=>{
     if ('new_value' in el && 'right_left_value' in el && 'old_value' in el ){
       strSQL = `update engraver_lookup set new_value = "${el.new_value}",right_left_value = ${el.right_left_value} where old_value = "${el.old_value}";`;
+      console.log(strSQL)
       db_query(strSQL).catch((e)=>(console.error(e)))
     }
   })
-  response.send({info:'Success'})
+  console.log(JSON.stringify(await db_query('select max(updt_dt_tm) from engraver_lookup')))
+  response.send({ info: 'Success',engraverData: this.GetCassEngLoc(request) })
 }
 
 async function getPartBlockCurrentAndTotals (request, response) {

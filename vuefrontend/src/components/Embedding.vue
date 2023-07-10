@@ -1,137 +1,60 @@
-<!-- ===========================================================================================
-
-    File: Embedding.vue
-
-    Authors: Justin Dial
-
-    Description: This is the component for handling the embedding process
-============================================================================================ -->
 <template>
-  <div class="container" v-if="this.$store.getters.GetValidUser">
-    <br />
-    <b-card
-      class="mx-auto"
-      style="
-        max-width: 68%;
-        opacity: 0.75;
-        font: normal small-caps normal 30px/1.4 'Arial';
-        padding: 35px 0 10px 0;
-        margin: 15px 0 10px 0;
-        border-radius: 15px;
-      "
-    >
-      <b-card-text>
-        <b-iconstack class="mb-5 py-md-1">
-          <b-icon stacked icon="calendar" scale="6" flip-v></b-icon>
-          <b-icon
-            stacked
-            icon="grid3x3"
-            scale="2.8"
-            shift-h="-21"
-            shift-v="21"
-          ></b-icon>
-          <b-icon
-            stacked
-            icon="grid3x3"
-            scale="2.8"
-            shift-h="-21"
-            shift-v="-21"
-          ></b-icon>
-          <b-icon
-            stacked
-            icon="grid3x3"
-            scale="2.8"
-            shift-h="21"
-            shift-v="21"
-          ></b-icon>
-          <b-icon
-            stacked
-            icon="grid3x3"
-            scale="2.8"
-            shift-h="21"
-            shift-v="-21"
-          ></b-icon>
-        </b-iconstack>
-      </b-card-text>
-      <span v-if="this.STRblockData">
-        <b-card-text
-          >AccessionID:
-          <b-badge
-            >{{ this.STRblockData.SpecNumFormatted }}
-          </b-badge></b-card-text
-        >
-        <b-card-text
-          >Block ID:
-          <b-badge>
-            {{ this.STRblockData.PartDesignator
-            }}{{ this.STRblockData.BlockDesignator }}
-          </b-badge></b-card-text
-        >
-        <b-card-text
-          >Name:
-          <b-badge
-            >{{ this.STRblockData.PatientName }}
-          </b-badge></b-card-text
-        >
-        <b-card-text
-          >BlockStatus:
-          <b-badge
-            >{{ this.STRblockData.BlockStatus }}
-          </b-badge></b-card-text
-        >
-        <b-card-text
-          >BlockComment:
-          <b-badge
-            >{{ this.STRblockData.BlockComment }}
-          </b-badge></b-card-text
-        >
-        <b-card-text
-          >PartDescription:
-          <b-badge
-            >{{ this.STRblockData.PartDescription }}
-          </b-badge></b-card-text
-        >
-      </span>
+  <div v-if="$store.getters.GetValidUser">
+    <b-card class="mx-auto p-5" style="max-width: 68%;border-radius: 15px; opacity: 0.9; border: 2px solid #0f3b52;">
+      <b-iconstack class="m-5">
+        <b-icon stacked icon="calendar" scale="6" flip-v />
+        <b-icon stacked icon="grid3x3" scale="2.8" shift-h="-21" shift-v="21" />
+        <b-icon stacked icon="grid3x3" scale="2.8" shift-h="-21" shift-v="-21" />
+        <b-icon stacked icon="grid3x3" scale="2.8" shift-h="21" shift-v="21" />
+        <b-icon stacked icon="grid3x3" scale="2.8" shift-h="21" shift-v="-21" />
+      </b-iconstack>
+      <div v-if="cardData">
+        <b-table :items="cardText" striped small class="m-auto">
+          <template #cell()="data">
+            <h3>{{ data.value }}</h3>
+          </template>
+        </b-table>
+      </div>
     </b-card>
   </div>
 </template>
 
-<!--components/Slides.vue -->
 <script>
-import axios from "axios";
-import store from "../store.js";
-
 export default {
-  name: "embedding", // component name
-  method:{
-        makeToast(
-      content,
-      title,
-      variant = null,
-      time = 1500,
-      locn = "b-toaster-top-left"
-    ) {
-      this.$bvToast.toast(content, {
-        title: title,
-        variant: variant,
-        solid: true,
-        autoHideDelay: time,
-        toaster: locn,
-        appendToast: true,
-      });
-    },
+  name: "embedding",
+  data() {
+    return {
+      cardText: [
+        { text: "AccessionID", value: null },
+        { text: "Block ID", value: null },
+        { text: "Name", value: null },
+        { text: "BlockStatus", value: null },
+        { text: "BlockComment", value: null },
+        { text: "PartDescription", value: null },
+      ],
+    };
   },
   computed: {
-    STRblockData() { 
-      let blockData = this.$store.getters.GetBlockData;
-        if (blockData){
-          if ('data' in blockData){
-            console.log('setting block data')
-            return blockData.data[0]
+    cardData: {
+      get() {
+        var blkData = this.$store.getters.GetBlockData.data || null
+        if (blkData) {
+          this.cardText[0].value = blkData[0].SpecNumFormatted;
+          this.cardText[1].value = blkData[0].BlockID;
+          this.cardText[2].value = blkData[0].PatientName;
+          this.cardText[3].value = blkData[0].BlockStatus;
+          this.cardText[4].value = blkData[0].BlockComment;
+          this.cardText[5].value = blkData[0].PartDescription;
         }
+        return blkData
       }
-      return null
-    }
+    },
   },
-}
+  watch: {
+    cardData: {
+      handler() { },
+      immediate: true,
+    },
+  },
+};
 </script>

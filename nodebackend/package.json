@@ -1,6 +1,6 @@
 {
   "name": "mawdslidetrackerbackend",
-  "version": "5.0.0",
+  "version": "5.0.2",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -14,13 +14,30 @@
     "console-error": "0.0.4",
     "console-info": "0.0.5",
     "console-warn": "0.0.4",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-prettier": "^4.2.1",
     "express": "^4.17.1"
   },
   "dependencies": {
     "dateformat": "^3.0.3",
-    "dotenv": "^6.2.0",
+    "dotenv": "^16.0.3",
     "morgan": "^1.10.0",
     "mysql": "^2.18.1",
     "socket.io": "^2.4.1"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
+    },
+    "extends": [
+      "plugin:vue/essential",
+      "plugin:prettier/recommended",
+      "eslint:recommended"
+    ],
+    "parserOptions": {
+      "parser": "babel-eslint"
+    },
+    "rules": {}
   }
 }

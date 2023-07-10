@@ -35,10 +35,17 @@ io.on('connection', (socket) => {
     console.log(arg);
   });
 
+  socket.on("engraverUpdate", (arg) => {
+    io.emit('engUpdate', {})
+    // console.log(arg);
+  });
+
   //On Version Request
   socket.on("version", (arg) => {
-    if (arg!=version){
-      socket.emit("toast", {text:'The website version ('+arg+') is old than expected ('+version+'): Please reload the page.',type:'versionError',color:'danger'});
+    console.log(arg)
+    console.log(version)
+    if (arg != version) {
+      socket.emit("toast", {content:'The website version ('+arg+') is old than expected ('+version+'): Please reload the page.',title:'versionError',variant:'danger'});
     }
     socket.emit("BackendVersion", version);
   });
@@ -89,5 +96,5 @@ app.use( (req, res) => { //Check if requested route is in:
 module.exports = {start}
 
 function start  (port) {
-  http.listen(port, "0.0.0.0", () => console.log(`Listening on port ${port}`))
+  http.listen(port||2081, "0.0.0.0", () => console.log(`Listening on port ${port||2081}`))
 }

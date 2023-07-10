@@ -1,27 +1,30 @@
 <template>
   <div class="outer-container">
-    <div class="container">
-      <b-progress :max="max" height="8rem" v-show="!loading">
-        <b-progress-bar :value="barValue(PreEmbedded)">
-          <span>PreEmbedded <h3>{{ PreEmbedded }}</h3></span>
-        </b-progress-bar>
-        <b-progress-bar :value="barValue(Embedded)">
-          <span>Embedded <h3>{{ Embedded }}</h3></span>
-        </b-progress-bar>
-        <b-progress-bar :value="barValue(Stained)">
-          <span>Stained <h3>{{ Stained }}</h3></span>
-        </b-progress-bar>
-        <b-progress-bar :value="barValue(slidesCut)">
-          <span>Slides Cut <h3>{{ slidesCut }}</h3></span>
-        </b-progress-bar>
-        <b-progress-bar :value="barValue(Distributed)">
-          <span>Distributed <h3>{{ Distributed }}</h3></span>
-        </b-progress-bar>
-      </b-progress>
-      <b-icon v-show="loading" icon="arrow-clockwise" animation="spin" font-scale="2"></b-icon>
-    </div>
+    <transition name="progress">
+      <div class="container" v-show="!loading">
+        <b-progress :max="max" height="8rem">
+          <b-progress-bar :key="'PreEmbedded'" :value="PreEmbedded" :max="PreEmbeddedMax" class="progress-bar">
+            <span>PreEmbedded <h3>{{ PreEmbedded }}</h3></span>
+          </b-progress-bar>
+          <b-progress-bar :key="'Embedded'" :value="Embedded" :max="EmbeddedMax" class="progress-bar">
+            <span>Embedded <h3>{{ Embedded }}</h3></span>
+          </b-progress-bar>
+          <b-progress-bar :key="'Stained'" :value="Stained" :max="StainedMax" class="progress-bar">
+            <span>Stained <h3>{{ Stained }}</h3></span>
+          </b-progress-bar>
+          <b-progress-bar :key="'slidesCut'" :value="slidesCut" :max="slidesCutMax" class="progress-bar">
+            <span>Slides Cut <h3>{{ slidesCut }}</h3></span>
+          </b-progress-bar>
+          <b-progress-bar :key="'Distributed'" :value="Distributed" :max="DistributedMax" class="progress-bar">
+            <span>Distributed <h3>{{ Distributed }}</h3></span>
+          </b-progress-bar>
+        </b-progress>
+      </div>
+    </transition>
+    <b-icon v-show="loading" icon="arrow-clockwise" animation="spin" font-scale="2"></b-icon>
   </div>
 </template>
+
 
 <script>
 import axios from "axios";
@@ -79,21 +82,21 @@ export default {
             this.Embedded = data.count;
             break;
           case "SlidesPrintedOffBlock":
-            this.slidesCut = data.count;
+            this.slidesCut = data.count * 3;
             break;
           case "distributed":
-            this.Distributed = data.count;
+            this.Distributed = data.count * 3;
             break;
           case "Stained":
-            this.Stained = data.count;
+            this.Stained = data.count * 3;
             break;
         }
       }
     },
     barValue(value) {
-      const threshold = this.max / 7;
-      const newValue = value * 0.5 + threshold;
-      return newValue > 200 ? newValue : 200;
+      const threshold = this.max / 18;
+      const newValue = value + threshold;
+      return newValue > 150 ? newValue : 150;
     },
     makeToast(content, title, variant = null, time = 1500, locn = "b-toaster-top-left") {
       this.$bvToast.toast(content, {
@@ -113,3 +116,23 @@ export default {
   },
 };
 </script>
+
+
+<style>
+.progress-enter-active {
+  transition: width 1s linear;
+}
+
+.progress-leave-active {
+  transition: width 1s ease-out;
+}
+
+.progress-enter,
+.progress-leave-to {
+  width: 0;
+}
+
+.progress-bar {
+  min-width: 150px;
+}
+</style>

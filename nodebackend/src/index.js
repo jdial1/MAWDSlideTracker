@@ -1,6 +1,6 @@
 "use strict";
 
-require('dotenv').load();
+require('dotenv').config();
 require('console-info');
 require('console-warn');
 require('console-error');
