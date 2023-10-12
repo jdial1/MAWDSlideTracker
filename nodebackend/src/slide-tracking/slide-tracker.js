@@ -25,7 +25,7 @@ module.exports = {
 }
 
 let lastQueryTimes=[];
-function CheckLastQueryCache(queryName,waitTime=15){
+function CheckLastQueryCache(queryName,waitTime=30){
   if (lastQueryTimes[queryName]){
     let now = new Date().toLocaleString("en-US", {timeZone: "America/Chicago"})
     let lastTime = lastQueryTimes[queryName].date
@@ -202,7 +202,7 @@ async function printSlides (request, response) {
   await db_query(strSQL).catch((e)=>(console.error(e)))
   response.send({info:'Slides have been sent to Slide Printer',files:currentFiles})
 }
-async function GetCaseInquery (request, response) {
+async function GetCaseInquery(request, response) {
   console.log(request.body)
   let strStrAccessionID = request.body.ACCESSIONID
   var strSQL = `
@@ -210,16 +210,12 @@ async function GetCaseInquery (request, response) {
       SELECT tblSlides.SlideID, 
               tblSlides.StainLabel, 
               tblSlideDistribution.Status, 
-              '' AS 'blnk1',
               tblSlides.StainOrderDate as 'Order Time',
               tblBlock.DateTimeEngraved,
-              '' AS 'blnk2',
               tblActionTracking.Station as 'Embedded Location',
               tblActionTracking.ActionDateTime as 'Embedded Time',
-              '' AS 'blnk3',
               tblSlides.LocationPrinted as 'Slide Printed Location', 
               tblSlides.DTPrinted as 'Slide Printed Time', 
-              '' AS 'blnk4',
               tblSlideDistribution.SlideDistributionLocation, 
               tblSlideDistribution.DTReadyForCourier, 
               tblSlideDistribution.SlideTray
@@ -233,10 +229,20 @@ async function GetCaseInquery (request, response) {
                     ON tblSlides.BlockID = tblActionTracking.IDOfMaterial
                     and tblActionTracking.Action='Embedded'
       WHERE  (( ( tblSlides.AccessionID ) LIKE "${strStrAccessionID}")) order by DTPrinted DESC;`
-  if (request.body.materialAudit){
+  if (request.body.materialAudit) {
     strSQL = `SELECT Action,IDOfMaterial ,User,Station,ActionDateTime from tblActionTracking tat  where tat.IDOfMaterial like '${strStrAccessionID}' order by ActionDateTime desc;`
   }
-  await db_query(strSQL).then((res)=> {response.json(res)}).catch((e)=>(console.error(e)))
+  var old_data = CheckLastQueryCache('GetCaseInquery')
+  if (old_data) {
+    return response.json(old_data)
+  }
+  else {
+    await db_query(strSQL).then((res) => {
+      lastQueryTimes['GetCaseInquery'] = {date: new Date().toLocaleString("en-US", {timeZone: "America/Chicago"}), data: res}
+      res[0].timestamp = new Date().toLocaleString("en-US", {timeZone: "America/Chicago"})
+      response.json(res)
+    }).catch((e) => (console.error(e)))
+  }
 }
 async function GetStatusData(request, response) {
   let old_data = CheckLastQueryCache('GetStatusData')

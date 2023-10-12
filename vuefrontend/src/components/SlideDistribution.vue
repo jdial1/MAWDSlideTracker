@@ -1,29 +1,15 @@
 <template>
-  <div class="container" v-if="$store.getters.GetValidUser">
-    <b-button-toolbar key-nav pills
-      style="border-radius: 15px; opacity: 0.9; border: 2px solid #ccc; background-color: #eef7fb !important">
-      <b-button pill :variant="getInputColor(currentslidetray)" class="text-white" disabled>
-        {{ currentslidetray }}
-      </b-button>
-      <b-button pill class="ml-3" variant="dark" disabled>
-        Slide Count:
-        <b-badge variant="primary">{{ strInTraySlideCount }}</b-badge>
-      </b-button>
-      <b-button pill class="ml-3" variant="dark" disabled>
-        Block Count:
-        <b-badge variant="primary">{{ strInTrayBlockCount }}</b-badge>
-      </b-button>
-      <b-button pill class="ml-auto" variant="dark">
-        {{ formstatuslabel }}
-      </b-button>
-      <b-button pill variant="dark" @click="Cancel()">
-        Cancel
-      </b-button>
-      <b-form-radio-group pill class="ml-auto" id="rdSlideTrayBehavior" v-model="rdSlideTrayBehaviorSelected"
+  <div class="container wrapper" v-if="$store.getters.GetValidUser">
+    <b-button-toolbar class="my-2 p-1">
+      <b-button :variant="getInputColor(currentslidetray)" class="text-white" disabled>{{ currentslidetray }}</b-button>
+      <b-button disabled> Slide Count:<b-badge variant="primary">{{ strInTraySlideCount }}</b-badge></b-button>
+      <b-button disabled> Block Count:<b-badge variant="primary">{{ strInTrayBlockCount }}</b-badge></b-button>
+      <b-button>{{ formstatuslabel }}</b-button>
+      <b-button @click="Cancel()">Cancel</b-button>
+      <b-form-radio-group class="ml-auto" id="rdSlideTrayBehavior" v-model="rdSlideTrayBehaviorSelected"
         :options="rdSlideTrayBehaviorOptions" buttons name="radios-btn-default" />
     </b-button-toolbar>
-    <br />
-    <div v-if="slides.length > 0">
+    <div v-if="slides.length">
       <b-table striped hover small borderless :items="slides" :fields="fields" />
       <blockcount />
     </div>
@@ -94,7 +80,6 @@ export default {
       }
     },
     MarkSlideToBeDistributed(strSlideID, strSlideDistributionID) {
-      //Only mark id slide tray is loaded
       if (this.blSlideTrayLoaded) {
         axios
           .post(store.getters.getApiUrl + "/slidedistribution", {
@@ -336,15 +321,3 @@ export default {
   },
 };
 </script>
-
-
-<style scoped>
-/* Material Design theme */
-.b-table {
-  font-family: 'Roboto', sans-serif;
-}
-
-.bg-primary {
-  background-color: #2196f3 !important;
-}
-</style>

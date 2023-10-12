@@ -1,47 +1,53 @@
 <template>
-  <div class="container">
-    <b-modal id="modal1" size="lg" title="Data Outdated" @hidden="resetModal" class="w-5 b-2" hide-footer>
-      <div class="d-block text-center">
-        <br>
-        <h5>The table data is outdated compared to the database, </h5>
-        <h4> <b> Reload the page and lose your changes</b> or <b>overwrite any changes?</b></h4>
-        <div class="d-flex justify-content-between">
-          <b-button variant="outline-danger" @click="cancelChange" class="mr-auto" size="lg">Reload Page</b-button>
-          <b-button variant="outline-warning" @click="sendChange" class="ml-auto" size="lg">Overwrite Changes</b-button>
-        </div>
-        <br>
-        <h5>Below are the differences between your table data and the database </h5>
-        <br>
-        <b-table v-if="outOfSyncItems" :items="outOfSyncItems" :fields="dif_fields" small></b-table>
-      </div>
+  <b-container class="container wrapper" v-if="$store.getters.GetValidUser">
+    <b-modal id="modal1" size="lg" title="Data Outdated" @hidden="resetModal" hide-footer>
+      <b-card class="text-center" no-body>
+        <b-card-text>
+          The table data is outdated compared to the database,
+        </b-card-text>
+        <b-card-title>
+          <b>Reload the page and lose your changes</b> or <b>overwrite any changes?</b>
+        </b-card-title>
+        <b-card-text class="mb-3">
+          <b-button variant="outline-danger" @click="cancelChange" size="lg" class="mr-3">Reload Page</b-button>
+          <b-button variant="outline-warning" @click="sendChange" size="lg" class="ml-3">Overwrite Changes</b-button>
+        </b-card-text>
+        <b-card-text>
+          Below are the differences between your table data and the database
+        </b-card-text>
+        <b-table v-if="outOfSyncItems" :items="outOfSyncItems" :fields="dif_fields" small class="mt-2"></b-table>
+      </b-card>
     </b-modal>
-    <b-button-toolbar key-nav pills class="mb-1"
-      style="border-radius: 15px; opacity: 0.9; border: 2px solid #ccc; background-color: #eef7fb !important">
+
+    <b-button-toolbar class="my-2 p-1">
       <b-button :disabled="!saveButtonStatus" @click="SaveAllChanges" size="lg" class="ml-auto">
         <b-icon v-if="loading" icon="arrow-clockwise" animation="spin"></b-icon>
         <b-icon v-else icon="cloud-upload"></b-icon>
         Save
       </b-button>
     </b-button-toolbar>
-    <div class="wrapper">
-      <b-icon v-if="table_loading" icon="arrow-clockwise" animation="spin" font-scale="3"></b-icon>
-      <b-table v-if="!table_loading" :items="items" :fields="fields">
-        <template v-slot:cell(old_value)="row">
-          <b-form-input v-model="row.item.old_value" disabled />
-        </template>
-        <template v-slot:cell(right_left_value)="row">
-          <b-form-checkbox v-model="row.item.right_left_value" switch>
-            <template v-if="row.item.right_left_value">RIGHT SIDE</template>
-            <template v-else>LEFT SIDE</template>
-          </b-form-checkbox>
-        </template>
-        <template v-slot:cell(new_value)="row">
-          <b-form-select v-model="row.item.new_value" :options="engraver_locations" />
-        </template>
-      </b-table>
+
+
+    <div v-show="table_loading" class="text-center">
+      <b-icon icon="arrow-clockwise" animation="spin" font-scale="3" style="color:#8ecae6;"></b-icon>
     </div>
-  </div>
+    <b-table v-show="!table_loading" :items="items" :fields="fields" small style="border-radius: 15px;">
+      <template v-slot:cell(old_value)="row">
+        <b-form-input v-model="row.item.old_value" disabled class="font-weight-bold" />
+      </template>
+      <template v-slot:cell(right_left_value)="row">
+        <b-form-checkbox v-model="row.item.right_left_value" switch size="lg" class="font-weight-bold">
+          <template v-if="row.item.right_left_value">RIGHT SIDE</template>
+          <template v-else>LEFT SIDE</template>
+        </b-form-checkbox>
+      </template>
+      <template v-slot:cell(new_value)="row">
+        <b-form-select v-model="row.item.new_value" :options="engraver_locations" class="font-weight-bold" />
+      </template>
+    </b-table>
+  </b-container>
 </template>
+
 
 
 <script>

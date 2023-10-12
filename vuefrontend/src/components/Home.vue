@@ -2,21 +2,21 @@
   <div class="outer-container">
     <transition name="progress">
       <div class="container" v-show="!loading">
-        <b-progress :max="max" height="8rem">
+        <b-progress :max="max" height="8rem" class="progress">
           <b-progress-bar :key="'PreEmbedded'" :value="PreEmbedded" :max="PreEmbeddedMax" class="progress-bar">
-            <span>PreEmbedded <h3>{{ PreEmbedded }}</h3></span>
+            <span>PreEmbedded <div class="h3">{{ PreEmbedded }}</div></span>
           </b-progress-bar>
           <b-progress-bar :key="'Embedded'" :value="Embedded" :max="EmbeddedMax" class="progress-bar">
-            <span>Embedded <h3>{{ Embedded }}</h3></span>
+            <span>Embedded <div class="h3">{{ Embedded }}</div></span>
           </b-progress-bar>
           <b-progress-bar :key="'Stained'" :value="Stained" :max="StainedMax" class="progress-bar">
-            <span>Stained <h3>{{ Stained }}</h3></span>
+            <span>Stained <div class="h3">{{ Stained }}</div></span>
           </b-progress-bar>
           <b-progress-bar :key="'slidesCut'" :value="slidesCut" :max="slidesCutMax" class="progress-bar">
-            <span>Slides Cut <h3>{{ slidesCut }}</h3></span>
+            <span>Slides Cut <div class="h3">{{ slidesCut }}</div></span>
           </b-progress-bar>
           <b-progress-bar :key="'Distributed'" :value="Distributed" :max="DistributedMax" class="progress-bar">
-            <span>Distributed <h3>{{ Distributed }}</h3></span>
+            <span>Distributed <div class="h3">{{ Distributed }}</div></span>
           </b-progress-bar>
         </b-progress>
       </div>

@@ -1,7 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import axios from 'axios'
-import {BToast} from 'bootstrap-vue'
 const { version } = require("../package.json");
 Vue.use(Vuex);
 export default new Vuex.Store({
@@ -41,86 +40,46 @@ export default new Vuex.Store({
     slideQueuePath: "",
   },
   mutations: {
-    backend_connect(state) {
+    backend_connect: (state) => {
       state.BackendSocketConn = true;
       this._vm.$socket.emit("version", state.frontendVersion);
     },
-    backend_toast(state, message) {
+    backend_toast: (state, message) => {
       this.commit('SetToastData', message);
       this.dispatch("makeToast");
     },
-    local_stream(state, context) {
+    local_stream: (state, context) => {
       state.localSocketConn = true;
       this.dispatch('validateScanData', { state, context });
     },
-    backend_disconnect(state) {
-      state.BackendSocketConn = false;
-    },
-    backend_message(context) {
-      console.log("backend_socket_message: " + context);
-    },
-    backend_BackendVersion(state, context) {
-      state.backendVersion = context;
-    },
-    localVersion(state, context) {
-      state.localVersion = context;
-    },
-    SetUserName(state, strUsername) {
-      state.username = strUsername;
-    },
-    SetValidUser(state, blTemp) {
-      state.validuser = blTemp;
-    },
-    SetStationName(state, strTemp) {
-      state.stationName = strTemp;
-    },
-    SetSlideQueuePath(state, strTemp) {
-      state.slideQueuePath = strTemp;
-    },
-    SetSlidesData(state, strTemp) {
-      state.slidesData = strTemp;
-    },
-    SetLocalSocketConn(state, strTemp) {
-      state.localSocketConn = strTemp;
-    },
-    SetBackendSocketConn(state, strTemp) {
-      state.BackendSocketConn = strTemp;
-    },
-    SetbackendVersion(state, strTemp) {
-      state.backendVersion = strTemp;
-    },
-    SetLocalVersion(state, strTemp) {
-      state.localVersion = strTemp;
-    },
-    SetToastData(state, strTemp) {
+    backend_disconnect: state => state.BackendSocketConn = false,
+    backend_message: context => console.log("backend_socket_message: " + context),
+    backend_BackendVersion: (state, context) => state.backendVersion = context,
+    localVersion: (state, context) => state.localVersion = context,
+    SetUserName: (state, strUsername) => state.username = strUsername,
+    SetValidUser: (state, blTemp) => state.validuser = blTemp,
+    SetStationName: (state, strTemp) => state.stationName = strTemp,
+    SetSlideQueuePath: (state, strTemp) => state.slideQueuePath = strTemp,
+    SetSlidesData: (state, strTemp) => state.slidesData = strTemp,
+    SetLocalSocketConn: (state, strTemp) => state.localSocketConn = strTemp,
+    SetBackendSocketConn: (state, strTemp) => state.BackendSocketConn = strTemp,
+    SetbackendVersion: (state, strTemp) => state.backendVersion = strTemp,
+    SetLocalVersion: (state, strTemp) => state.localVersion = strTemp,
+    SetToastData: (state, strTemp) => {
       state.toastData = strTemp;
       this.dispatch("makeToast");
     },
-    SetbackendConn(state, strTemp) {
-      state.backendConn = strTemp;
-    },
-    SetPrintName(state, strTemp) {
-      state.printName = strTemp;
-    },
-    ClearBlockCountTableItems(state) {
-      state.blockCountTableItems = [];
-    },
-    PushBlockCountTableItems(state, objTmp) {
-      state.blockCountTableItems.push(objTmp);
-    },
-    production(state, strTemp) {
-      state.production = strTemp;
-    },
-    SetCurrentRouteName(state, strTemp) {
+    SetbackendConn: (state, strTemp) => state.backendConn = strTemp,
+    SetPrintName: (state, strTemp) => state.printName = strTemp,
+    ClearBlockCountTableItems: state => state.blockCountTableItems = [],
+    PushBlockCountTableItems: (state, objTmp) => state.blockCountTableItems.push(objTmp),
+    production: (state, strTemp) => state.production = strTemp,
+    SetCurrentRouteName: (state, strTemp) => {
       this.commit("blockData", []);
       state.currentRouteName = strTemp;
     },
-    setBlockColor(state, strTemp) {
-      state.blockColor = strTemp;
-    },
-    setBlockData(state, strTemp) {
-      state.blockData = strTemp;
-    },
+    setBlockColor: (state, strTemp) => state.blockColor = strTemp,
+    setBlockData: (state, strTemp) => state.blockData = strTemp,
   },
   getters: {
     BlockCountTableFields:     () => ["location", "block_count"],
@@ -149,17 +108,11 @@ export default new Vuex.Store({
     GetBackendStatus:          state => state.backendConn,
     GetSlideTrayID:            state => state.slideTrayID,
     GetProduction:             state => state.production,
-    getApiUrl: state => {
-      if (state.nodeBackendTestMode) {
-        return state.testLocalapiURL
-      } else {
-        return state.production ? state.prodapiURL : state.testapiURL;
-      }
-    },
+    getApiUrl:                 state => state.nodeBackendTestMode ? state.testLocalapiURL : (state.production ? state.prodapiURL : state.testapiURL)
   },
   actions: {
     async updateEngraverLocations() {
-      await this._vm.$socket.emit('engraverUpdate','');
+      await this._vm.$socket.emit('engraverUpdate', '');
     },
     async loadBlockCountTableData({ commit }) {
       const apiUrl = this.getters.getApiUrl;
@@ -177,93 +130,78 @@ export default new Vuex.Store({
         console.error(error);
       }
     },
-    async validateScanData({ getters, commit, dispatch }, { context, state }) {
-      const { barcodeScanData, localVersion } = context;
-      const { currentRouteName } = state;
+    async validateScanData({ getters: { getValidUser }, commit, dispatch }, { context: { barcodeScanData, localVersion }, state: { currentRouteName } }) {
+      commit('setLocalVersion', localVersion || 'OLD');
+      
       const scanType = barcodeScanData.substring(0, 4);
       const materialData = barcodeScanData.substring(4);
-      const validUser = getters.getValidUser;
-      commit('setLocalVersion', localVersion || 'OLD');
+      const validUser = getValidUser;
       const typeRoute = `${scanType}_${currentRouteName}`;
+      
       const invalidScans = ['HSLD_SlidePrinting', 'LOCN_SlidePrinting', 'SLTR_SlidePrinting', 'HBLK_SlideDistribution', 'HSLD_Embedding', 'LOCN_Embedding', 'SLTR_Embedding', 'HBLK_Home', 'HSLD_Home', 'LOCN_Home', 'SLTR_Home'];
       const materialLookup = { 'HBLK': 'Block', 'HSLD': 'Slide', 'LOCN': 'Location', 'SLTR': 'Slide Tray', 'SBDG': 'Badge' };
     
-      switch (scanType) {
-        case 'SBDG':
-          await dispatch('scanBadge', { badge_id: materialData, scan_data: context });
-          break;
-        case !validUser:
-          commit('setToastData', { title: 'Invalid User', content: 'Please login before scanning material' });
-          break;
-        case invalidScans.includes(typeRoute):
-          commit('setToastData', { title: 'Incorrect Material', content: `${materialLookup[scanType]} Material cannot be scanned from ${typeRoute.split('_')[1]}` });
-          break;
-        case typeRoute === 'HBLK_SlidePrinting':
-          await dispatch('pullSlides', { blockID: materialData });
-          break;
-        case typeRoute === 'HSLD_SlideDistribution':
-          await dispatch('ScanSlide', { ScanData: context });
-          break;
-        case typeRoute === 'LOCN_SlideDistribution':
-          await dispatch('ScanLocation', { ScanData: context });
-          break;
-        case typeRoute === 'SLTR_SlideDistribution':
-          await dispatch('ScanSlideTray', { ScanData: context });
-          break;
-        case typeRoute === 'HBLK_Embedding':
-          await dispatch('loadBlockData', { blockID: materialData });
-          break;
-        default:
-          break;
+      if (scanType === 'SBDG') {
+        await dispatch('scanBadge', { badge_id: materialData, scan_data: barcodeScanData });
+      } else if (!validUser) {
+        commit('setToastData', { title: 'Invalid User', content: 'Please login before scanning material' });
+      } else if (invalidScans.includes(typeRoute)) {
+        commit('setToastData', { title: 'Incorrect Material', content: `${materialLookup[scanType]} Material cannot be scanned from ${typeRoute.split('_')[1]}` });
+      } else if (typeRoute === 'HBLK_SlidePrinting') {
+        await dispatch('pullSlides', { blockID: materialData });
+      } else if (typeRoute.endsWith('SlideDistribution')) {
+        const type = typeRoute.split('_')[0];
+        await dispatch(`Scan${materialLookup[type]}`, { ScanData: barcodeScanData });
+      } else if (typeRoute === 'HBLK_Embedding') {
+        await dispatch('loadBlockData', { blockID: materialData });
       }
     },
-    async pullSlides({ commit, getters }, { blockID }) {
+    async pullSlides({ commit, getters: { getApiUrl } }, { blockID }) {
       if (!blockID) {
         alert('Please enter block ID to pull up slides');
         return;
       }
       try {
-        const { data } = await axios.post(`${getters.getApiUrl}/pullSlides`, { blockID });
+        const { data } = await axios.post(`${getApiUrl}/pullSlides`, { blockID });
         commit('SetSlidesData', data);
         commit('setFormStatus', { status: 'readytoprint', label: 'Print Slides' });
-        await axios.post(`${getters.getApiUrl}/GetPartBlockCurrentAndTotals`, { blockID });
+        await axios.post(`${getApiUrl}/GetPartBlockCurrentAndTotals`, { blockID });
       } catch (error) {
         console.error(error);
       }
     },
-    async scanBadge({ commit, getters }, { badge_id: userId, scan_data: data }) {
+    async scanBadge({ commit, getters: { getApiUrl, GetUsername } }, { badge_id: userId, scan_data: { slideQueuePath, StationName } }) {
       try {
-        const { data: userInfo } = await axios.post(`${getters.getApiUrl}/getUserInfo`, { userId });
-        const { username, printname } = userInfo[0];
+        const { data: [userInfo] } = await axios.post(`${getApiUrl}/getUserInfo`, { userId });
+        const { username, printname } = userInfo;
         commit('SetUserName', username);
         commit('SetPrintName', printname);
-        if (getters.GetUsername.length) {
+        if (GetUsername.length) {
           commit('SetValidUser', true);
-          commit('SetSlideQueuePath', data.slideQueuePath);
-          commit('SetStationName', data.StationName);
+          commit('SetSlideQueuePath', slideQueuePath);
+          commit('SetStationName', StationName);
         }
       } catch (error) {
         console.error(error);
       }
     },
-    async printSlides({ commit, getters }, blockID) {
+    
+    async printSlides({ commit, getters: { getApiUrl, GetUsername, GetSlideQueuePath, GetStationName, GetCurrentRouteName } }, blockID) {
       try {
-        const response = await axios.post(`${getters.getApiUrl}/printslides`, {
+        const { files } = await axios.post(`${getApiUrl}/printslides`, {
           action: 'PrintSlides',
           blockID,
-          printRequestedBy: getters.GetUsername,
-          slideQueuePath: getters.GetSlideQueuePath,
-          printLocation: getters.GetStationName,
-          curRoute: getters.GetCurrentRouteName,
+          printRequestedBy: GetUsername,
+          slideQueuePath: GetSlideQueuePath,
+          printLocation: GetStationName,
+          curRoute: GetCurrentRouteName,
         });
-        const { files } = response;
         if (files) {
           commit('SetToastData', { title: 'Slide Printer Issues', content: `Files waiting to be printed:\n ${files}`, variant: 'danger' });
         }
       } catch (error) {
         console.error(error);
       }
-      // Done printing, scan new block
       commit('setFormStatus', { status: 'loadslides', label: 'Load Slides' });
       this.clearCurrentSlide();
     },
@@ -289,147 +227,159 @@ export default new Vuex.Store({
         console.error(error);
       }
     },
-    LoadTableData() {
-      this.dispatch("LoadBlockCountTableData").then(() => {
+    async LoadTableData() {
+      return this.dispatch("LoadBlockCountTableData").then(() => {
         this.datacollection = this.getters.objChartDataCollection;
       });
     },
-    CreateNewSlideDistribution() {
-      var { GetUsername, GetSlideTrayID, GetStationName, GetCurrentRouteName, GetSlideID, GetSlideDistributionID } = this.getters;
-      // Only create new slide distribution if New Slide Tray, otherwise, existing tray has already been loaded.
+    
+    async CreateNewSlideDistribution() {
+      let { GetUsername, GetSlideTrayID, GetStationName, GetCurrentRouteName, GetSlideID, GetSlideDistributionID } = this.getters;
       if (this.rdSlideTrayBehaviorSelected === "EditExisting") {
-        // Already have slide distribution ID, do not get new one.
         this.blFirstSlideScanned = true;
-        this.dispatch("MarkSlideToBeDistributed", { strSlideID: GetSlideID, SlideDistributionID: GetSlideDistributionID });
+        await this.dispatch("MarkSlideToBeDistributed", { strSlideID: GetSlideID, SlideDistributionID: GetSlideDistributionID });
       } else {
-        // Clear Slide Distrib ID
-        GetSlideDistributionID = null;
-        // Call API to create new slide distribution for slide tray.
-        axios.post(GetApiUrl + "/slidedistribution", {
+        try {
+          const { data } = await axios.post(`${this.getters.getApiUrl}/slidedistribution`, {
             action: "CreateNewSlideDistribution",
             userid: GetUsername,
             slidetray: GetSlideTrayID,
             scanlocation: GetStationName,
             curRoute: GetCurrentRouteName,
-          })
-          .then((apidata) => {
-            this.blFirstSlideScanned = true;
-            this.SlideDistributionID = apidata.data.insertId;
-            this.dispatch("MarkSlideToBeDistributed", { strSlideID: GetSlideID, SlideDistributionID: this.SlideDistributionID });
-            const { data } = apidata;
-            this.strInTraySlideCount = data[2][0].SlidesInTray;
-            this.strInTrayBlockCount = data[3][0].BlockCountInTray;
-            // Update block count table
-            this.LoadTableData();
-          })
-          .catch((e) => {});
+          });
+          this.blFirstSlideScanned = true;
+          this.SlideDistributionID = data.insertId;
+          await this.dispatch("MarkSlideToBeDistributed", { strSlideID: GetSlideID, SlideDistributionID: this.SlideDistributionID });
+          this.strInTraySlideCount = data[2][0].SlidesInTray;
+          this.strInTrayBlockCount = data[3][0].BlockCountInTray;
+          await this.LoadTableData();
+        } catch (e) {
+          console.error(e);
+        }
       }
     },
-    MarkSlidesReadyForCourier() {
+    
+    async MarkSlidesReadyForCourier() {
       const { GetUsername, GetSlideDistributionID, GetStationName, GetSlideTrayID, GetCurrentRouteName } = this.getters;
-      if (this.blFirstSlideScanned) {
-        axios.post(this.getters.getApiUrl + "/slidedistribution", {
-          action: "MarkSlidesReadyForCourier",
-          slidedistid: this.SlideDistributionID,
-          userid: GetUsername,
-          slidedistrloc: GetSlideDistributionID,
-          scanlocation: GetStationName,
-          curRoute: GetCurrentRouteName,
-        }).then(() => {
-          this.clearVariables();
-          this.loadTableData();
-        }).catch(() => {
-          this.clearVariables();
-          this.inputtext = "Error";
-        });
-      } else {
-        axios.post(this.getters.getApiUrl + "/slidedistribution", {
-          action: "AssignTrayNewLocation",
-          userid: GetUsername,
-          slidedistrloc: GetSlideDistributionID,
-          scanlocation: GetStationName,
-          slidetray: GetSlideTrayID,
-          curRoute: GetCurrentRouteName,
-        }).then(() => {
-          this.clearVariables();
-        }).catch(() => {
-          this.clearVariables();
-          this.inputtext = "Error";
-        });
+      try {
+        if (this.blFirstSlideScanned) {
+          await axios.post(`${this.getters.getApiUrl}/slidedistribution`, {
+            action: "MarkSlidesReadyForCourier",
+            slidedistid: this.SlideDistributionID,
+            userid: GetUsername,
+            slidedistrloc: GetSlideDistributionID,
+            scanlocation: GetStationName,
+            curRoute: GetCurrentRouteName,
+          });
+        } else {
+          await axios.post(`${this.getters.getApiUrl}/slidedistribution`, {
+            action: "AssignTrayNewLocation",
+            userid: GetUsername,
+            slidedistrloc: GetSlideDistributionID,
+            scanlocation: GetStationName,
+            slidetray: GetSlideTrayID,
+            curRoute: GetCurrentRouteName,
+          });
+        }
+        this.clearVariables();
+      } catch (e) {
+        this.clearVariables();
+        this.inputtext = "Error";
       }
+      this.loadTableData();
     },
     clearVariables() {
-      this.slidetrayID = "";
-      this.blSlideTrayLoaded = false;
-      this.currentslidetray = this.nextslidetray;
-      this.inputtext = "Scan Slide Tray to Proceed";
-      this.strInputTextLabel = this.defaultstrInputTextLabel;
-      this.slides = {};
-      this.SlideDistributionID = null;
-      this.rdSlideTrayBehaviorOptions[1].disabled = false;
-      this.rdSlideTrayBehaviorOptions[0].disabled = false;
+      Object.assign(this, {
+        slidetrayID: "",
+        blSlideTrayLoaded: false,
+        currentslidetray: this.nextslidetray,
+        inputtext: "Scan Slide Tray to Proceed",
+        strInputTextLabel: this.defaultstrInputTextLabel,
+        slides: {},
+        SlideDistributionID: null,
+        rdSlideTrayBehaviorOptions: Object.assign(this.rdSlideTrayBehaviorOptions, { 0: { disabled: false }, 1: { disabled: false } })
+      });
     },
+    
     loadTableData() {
-      this.loading = false;
-      this.strInTrayBlockCount = "0";
-      this.strInTraySlideCount = "0";
-      this.LoadTableData();
-    },    
-    clearCurrentSlide() {
-      this.blockID = "";
-      this.formstatus = "loadslides";
-      this.formstatuslabel = "Load Slides";
-      this.totalBlocks = "";
-      this.currentBlock = "";
-      this.totalParts = "";
-      this.currentPart = "";
-      this.slides = {};
+      Object.assign(this, {
+        loading: false,
+        strInTrayBlockCount: "0",
+        strInTraySlideCount: "0"
+      });
+      return this.LoadTableData();
     },
+    
+    clearCurrentSlide() {
+      Object.assign(this, {
+        blockID: "",
+        formstatus: "loadslides",
+        formstatuslabel: "Load Slides",
+        totalBlocks: "",
+        currentBlock: "",
+        totalParts: "",
+        currentPart: "",
+        slides: {}
+      });
+    },
+    
     async ScanSlideTray(strSlideTrayID) {
       const { GetSlideTrayID, GetSlideDistributionID, GetUsername, GetStationName } = this.getters;
+    
       if (this.blSlideTrayLoaded) {
         this.inputtext = "Scan Slide or Location to close Slide Tray";
         return;
       }
-      this.blSlideTrayLoaded = true;
-      this.slidetrayID = strSlideTrayID;
-      this.currentslidetray = this.slidetrayID;
+    
+      Object.assign(this, {
+        blSlideTrayLoaded: true,
+        slidetrayID: strSlideTrayID,
+        currentslidetray: strSlideTrayID,
+      });
+    
       if (this.rdSlideTrayBehaviorSelected === "EditExisting") {
         try {
           this.loading = true;
-          const { data } = await axios.post(this.getters.getApiUrl + "/slidedistribution", {
+          const { data } = await axios.post(`${this.getters.getApiUrl}/slidedistribution`, {
             action: "LoadSlideTray",
             userid: GetUsername,
             slidetray: GetSlideTrayID,
             scanlocation: GetStationName,
             curRoute: this.currentRouteName,
           });
+    
           this.SlideDistributionID = GetSlideDistributionID;
-          //Load Slide Tray now
-          const temp = data;
-          this.slides = temp[1];
-          this.fields = Object.keys(this.slides[0]);
-          this.fields[3] = {
-            key: Object.keys(this.slides[0])[3],
-            label: "Case Slides Not In Tray",
-          };
-          this.fields[3] = "Case Slides Not In Tray";
-          this.obApiResult02 = temp[2];
-          this.strInTraySlideCount = this.obApiResult02[0].SlidesInTray;
-          this.obApiResult03 = temp[3];
-          this.strInTrayBlockCount = this.obApiResult03[0].BlockCountInTray;
-          this.rdSlideTrayBehaviorOptions[0].disabled = true;
+    
+          const [slides, fields, obApiResult02, obApiResult03] = data;
+          Object.assign(this, {
+            slides: slides,
+            fields: Object.assign(Object.keys(slides[0]), {
+              3: {
+                key: Object.keys(slides[0])[3],
+                label: "Case Slides Not In Tray",
+              }
+            }),
+            obApiResult02: obApiResult02,
+            strInTraySlideCount: obApiResult02[0].SlidesInTray,
+            obApiResult03: obApiResult03,
+            strInTrayBlockCount: obApiResult03[0].BlockCountInTray,
+            rdSlideTrayBehaviorOptions: Object.assign(this.rdSlideTrayBehaviorOptions, { 0: { disabled: true } })
+          });
         } catch (error) {
-          // handle error
+          console.error(error);
         } finally {
           this.loading = false;
         }
       } else {
         this.rdSlideTrayBehaviorOptions[1].disabled = true;
       }
-      this.inputtext = "Scan Slide to Proceed";
-      this.strInputTextLabel = this.defaultstrInputTextLabel;
+    
+      Object.assign(this, {
+        inputtext: "Scan Slide to Proceed",
+        strInputTextLabel: this.defaultstrInputTextLabel,
+      });
     },
+    
     ScanLocation(strLocID) {
       if (this.blSlideTrayLoaded) {
         this.loading = true;
@@ -438,43 +388,50 @@ export default new Vuex.Store({
         this.inputtext = "Scan Slide Tray Before Location";
       }
     },
+    
     ScanSlide(strSlideID) {
       if (!this.blSlideTrayLoaded) {
         this.inputtext = "Scan Slide Tray First";
         return;
       }
+    
       this.blFirstSlideScanned ? this.dispatch("MarkSlideToBeDistributed", { strSlideID: this.getters.GetSlideID, SlideDistributionID: this.getters.GetSlideDistributionID }) : this.CreateNewSlideDistribution(strSlideID);
     },
-    async LoadBlockData(state, {ScanData}) {
+    
+    async LoadBlockData(state, { ScanData }) {
       try {
-        const apidata = await axios.post(this.getters.getApiUrl + "/GetBlockData", {
+        const apidata = await axios.post(`${this.getters.getApiUrl}/GetBlockData`, {
           action: "GetBlockData",
           blockID: ScanData,
           curRoute: this.getters.GetCurrentRouteName,
         });
         this.commit('setBlockData', apidata);
-        await this.dispatch('findBlockColor', {'hopperColor': apidata.data[0].Hopper});
-        await this.dispatch('saveBlockData', {state, blk_data: apidata.data[0]});
+        await Promise.all([
+          this.dispatch('findBlockColor', { 'hopperColor': apidata.data[0].Hopper }),
+          this.dispatch('saveBlockData', { state, blk_data: apidata.data[0] })
+        ]);
       } catch (error) {
         this.commit('SetToastData', { 'title': "Failed to get block: " + error, 'content': "Block Failure", 'variant': 'danger' });
       }
-    },    
-    async saveBlockData({state}) {
-      const {GetBlockData, GetStationName, GetUsername, GetCurrentRouteName, BlockID} = this.getters;
+    },
+    
+    async saveBlockData({ state }) {
+      const { GetBlockData, GetStationName, GetUsername, GetCurrentRouteName, BlockID } = this.getters;
+    
       try {
-        const response = await axios.post(this.getters.getApiUrl + "/SetBlockData", {
+        const response = await axios.post(`${this.getters.getApiUrl}/SetBlockData`, {
           action: "SetBlockData",
           blockData: GetBlockData,
           scanlocation: GetStationName,
           userid: GetUsername,
           curRoute: GetCurrentRouteName,
         });
-        const ToastString = `${BlockID} Status Updated to Embedded: ${response}`;
-        this.commit('SetToastData', { content: '',title: "Block Status",'variant': 'success' });
+        this.commit('SetToastData', { content: '', title: "Block Status", 'variant': 'success' });
       } catch (error) {
-        this.commit('SetToastData', { 'title': "Failed to Embed: " + error,'content':"AXIOS ERROR",'variant':'danger' });
+        this.commit('SetToastData', { 'title': "Failed to Embed: " + error, 'content': "AXIOS ERROR", 'variant': 'danger' });
       }
     },
+    
     makeToast() {
       const { GetToastData } = this.getters;
       const { content, title, variant = "warning", time = 99999 } = GetToastData;
@@ -486,19 +443,20 @@ export default new Vuex.Store({
         toaster: "b-toaster-top-center",
         autohide: false,
       });
-    },    
-    findBlockColor(hopperColor) {
-      let colors = {
-        101: "primary", //blue
-        102: "primary", //blue
-        103: "success", //green
-        104: "success", //green
-        105: "danger",  //red
-        106: "warning", //yellow
-        107: "dark",    //purple
-        108: "dark",    //purple
-      };
-      if (colors[hopperColor]) {this.commit('setBlockColor', colors[hopperColor]);}
     },
+    
+    findBlockColor(hopperColor) {
+      const colors = {
+        101: "primary",
+        102: "primary",
+        103: "success",
+        104: "success",
+        105: "danger",
+        106: "warning",
+        107: "dark",
+        108: "dark"
+      };
+      if (colors[hopperColor]) { this.commit('setBlockColor', colors[hopperColor]); }
+    }
   },
 });

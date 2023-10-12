@@ -36,6 +36,7 @@
           <i class="fa-solid fa-microscope fa-lg m-2"></i>
           Diagnosis
         </b-nav-item>
+
       </b-navbar-nav>
       <b-nav-item-dropdown no-caret right pill>
         <template #button-content>
@@ -45,41 +46,28 @@
         <b-dropdown-item to="/settings">Settings</b-dropdown-item>
         <b-dropdown-item v-if="ValidUser" @click="logout()">Log Out</b-dropdown-item>
         <b-dropdown-item class="m-auto" disabled>{{ printName }}</b-dropdown-item>
-        <b-dropdown-item disabled>Frontend<span v-if="FEVersion">&nbsp;v {{ FEVersion }} ({{ this.nodeEnv
-        }})</span></b-dropdown-item>
-        <b-dropdown-item disabled>Local<span v-if="LocalVersion">&nbsp;v {{ LocalVersion }} ({{ StationName
-        }})</span>&nbsp;
-          <b-icon-check2-circle v-if="LocalStatus" variant="success"></b-icon-check2-circle>
-          <b-icon-x-circle v-if="!LocalStatus" variant="danger"></b-icon-x-circle>
-        </b-dropdown-item>
-        <b-dropdown-item disabled>
-          Backend<span v-if="BEVersion">&nbsp;v
-            {{ BEVersion }}(TestMode:{{ BETestMode }})</span>&nbsp;
-          <b-icon-check2-circle v-if="BEStatus" variant="success"></b-icon-check2-circle>
-          <b-icon-x-circle v-if="!BEStatus" variant="danger"></b-icon-x-circle>
-        </b-dropdown-item>
       </b-nav-item-dropdown>
     </b-navbar>
     <br />
     <router-view></router-view>
+    <div class="nav-items-container">
+      <b-button disabled>
+        Local<span v-if="LocalVersion">&nbsp;v {{ LocalVersion }} ({{ StationName
+        }})</span>&nbsp;
+        <b-icon-check2-circle v-if="LocalStatus" variant="success"></b-icon-check2-circle>
+        <b-icon-x-circle v-if="!LocalStatus" variant="danger"></b-icon-x-circle>
+
+        Backend<span v-if="BEVersion">&nbsp;v
+          {{ BEVersion }}(TestMode:{{ BETestMode }})</span>&nbsp;
+        <b-icon-check2-circle v-if="BEStatus" variant="success"></b-icon-check2-circle>
+        <b-icon-x-circle v-if="!BEStatus" variant="danger"></b-icon-x-circle>
+      </b-button>
+    </div>
   </div>
 </template>
 
 <style>
 @import "./assets/app_style.css";
-
-b-iconstack {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: auto;
-}
-
-.badge-scan {
-  width: '200px';
-  margin: auto;
-  text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
-}
 </style>
 <script>
 import store from "./store.js";
@@ -89,6 +77,14 @@ export default {
   name: "app",
   data() {
     return {
+      navItems: [
+        { route: 'caseinquiry', name: 'Search', icon: 'fa-solid fa-search fa-lg m-2' },
+        { route: 'Engraving', name: 'Grossing', icon: 'fa-solid fa-bacteria' },
+        { route: 'Embedding', name: 'Embedding', icon: 'fa-solid fa-calendar fa-lg m-2' },
+        { route: 'SlidePrinting', name: 'Printing', icon: 'fa-solid fa-file fa-lg m-2' },
+        { route: 'SlideDistribution', name: 'Distribution', icon: 'fa-solid fa-book-open fa-lg m-2' },
+        { route: 'Diagnosis', name: 'Diagnosis', icon: 'fa-solid fa-microscope fa-lg m-2' },
+      ],
       userinfo: {},
       scannedbadgeinput: "Scan Badge",
       defaultbadgeinput: "Scan Badge",

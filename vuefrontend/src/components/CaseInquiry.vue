@@ -1,10 +1,9 @@
 <template>
-  <div class="container" v-if="$store.getters.GetValidUser">
-    <b-button-toolbar key-nav pills
-      style="border-radius: 15px; opacity: 0.9; border: 2px solid #ccc; background-color: #eef7fb !important">
-      <b-input v-model="strCaseNo" placeholder="Input Case No" @keyup.enter="EnterKeyTrigger" class="m-2"
-        style="max-width:75%;" />
-      <b-button pill class="ml-3" @click="LoadTableData" ref="btnLoadTableData" variant="dark">
+  <b-container class="container wrapper" v-if="$store.getters.GetValidUser">
+    <b-button-toolbar class="my-2 p-1">
+      <b-input v-model="strCaseNo" placeholder="Input Case No" @keyup.enter="EnterKeyTrigger" class="m-2" size="lg"
+        style="max-width: 75%;" />
+      <b-button size="lg" class="m-1" @click="LoadTableData" ref="btnLoadTableData">
         <div v-if="loading">
           <b-icon disabled icon="arrow-clockwise" animation="spin" font-scale="1" />
         </div>
@@ -12,33 +11,36 @@
           <b-icon icon="search" /> Search
         </div>
       </b-button>
-      <b-form-group class="m-0" v-if="!loading" pill variant="dark">
-        <b-dropdown right text="Settings">
-          <template #button-content>
-            <b-icon icon="gear" />
-          </template>
-          <div class="d-flex justify-content-center">
-            <b-checkbox v-model="exactMatch" size="md" switch /> Exact Match
+      <b-form-group v-if="!loading" class="m-auto">
+        <b-dropdown text="Settings" boundary="window" class="full-height-dropdown">
+          <template #button-content><b-icon icon="gear" size="lg" class="m-1" /></template>
+          <div class="d-flex m-1">
+            <b-checkbox v-model="exactMatch" size="md" switch class="ml-2" />
+            <span>Exact Match</span>
           </div>
-          <div class="d-flex justify-content-center">
-            <b-checkbox v-model="materialAudit" :disabled="AdminInputPassword !== AdminPass" size="md" switch />
-            Material Audit
+          <div class="d-flex  m-1">
+            <b-checkbox v-model="materialAudit" :disabled="!adminPassValidate" size="md" switch class="ml-2" />
+            <span>Material Audit</span>
           </div>
-          <b-input v-model="AdminInputPassword" id="AdminInputPassword" placeholder="Admin Code" class="mx-auto"
-            style="max-width: 150px" />
+          <div class="d-flex m-1">
+            <b-input v-model="AdminInputPass" id="AdminInputPass" placeholder="Admin Code" style="max-width:55%" />
+          </div>
         </b-dropdown>
       </b-form-group>
     </b-button-toolbar>
-    <br />
-    <b-table v-if="queryResponse && queryData && queryData.length > 0" :items="queryData" :fields="fieldVals" small
-      borderless striped hover />
-    <div v-else-if="queryResponse && (!queryData || queryData.length === 0)">
-      <h3
-        style="color: #0f3b52; background-color: black;border-radius: 15px; opacity: 0.9; border: 2px solid #0f3b52; background-color: #eef7fb !important;">
-        No Data Found</h3>
+    <div class="d-flex justify-content-center" v-if="queryResponse && queryData && queryData.length > 0">
+      <b-table :items="queryData" :fields="fieldVals" small borderless striped hover class="mx-auto b-table"
+        style="border-radius: 15px;" />
     </div>
-  </div>
+    <div v-if="queryResponse && (!queryData || queryData.length === 0)">
+      <h3 class="h1">No Data Found</h3>
+    </div>
+  </b-container>
 </template>
+
+
+
+
 
 
 <script>
@@ -56,7 +58,7 @@ export default {
       queryData: [],
       loading: false,
       queryResponse: false,
-      AdminInputPassword: "",
+      AdminInputPass: "",
       AdminPass: "HISTO001!",
     };
   },
@@ -77,7 +79,7 @@ export default {
           ACCESSIONID: accId,
           apitoken: store.state.apitoken,
           curRoute: this.currentRouteName,
-          adminCode: this.AdminInputPassword,
+          adminCode: this.AdminInputPass,
           materialAudit: this.materialAudit,
         })
         .then((apidata) => {
@@ -102,6 +104,7 @@ export default {
               );
             if (e["DateTimeEngraved"])
               e["DateTimeEngraved"] = this.dateFormatter(e["DateTimeEngraved"]);
+            delete e["timestamp"]
           });
           this.queryData = temp;
           this.queryResponse = true;
@@ -158,6 +161,9 @@ export default {
   computed: {
     currentRouteName() {
       return store.getters.GetCurrentRouteName;
+    },
+    adminPassValidate() {
+      return this.AdminInputPass == this.AdminPass;
     },
   },
 };
